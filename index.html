@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Wonder Obfuscator</title>
+<title>Lua Obfuscator | v2.04.3</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -183,12 +183,12 @@
 </head>
 <body>
 
-<div id="intro"><div id="intro-title">Wonder Compiler</div></div>
+<div id="intro"><div id="intro-title">Lua Obfuscator | @vxpe_injected on Discord | v.2.04.3</div></div>
 
 <div id="mini-menu">
     <div id="mini-menu-title">Note!</div>
     <p>Made By @vxpe_injected on Discord, Follow me for more</p>
-    <p>psst.. I've been working On this for Ages</p>
+    <p>psst.. I've been working On this for ages</p>
 </div>
 
 <div class="container">
@@ -290,9 +290,6 @@ function clearFields() {
     document.getElementById('output').textContent = '';
 }
 
-// =====================
-// Obfuscation Logic
-// =====================
 function applyObfuscation(code, level, antiReverse) {
     let obf = code;
     if (level !== 'none' || antiReverse !== 'none') {
@@ -309,7 +306,7 @@ function applyObfuscation(code, level, antiReverse) {
         extreme: [stringManipulation, advancedControlFlowObfuscation, (c)=>deadCodeInsertion(c,preserveFunctionality), aggressiveRenaming, booleanObfuscation, numberObfuscation, dataObfuscation, functionInlining]
     };
 
-    if(levels[level]) levels[level].forEach(fn=>obf=fn(obf));
+    if(levels[level]) levels[level].forEach(fn => obf = fn(obf));
 
     const anti = {
         basic: [basicControlFlowObfuscation],
@@ -317,11 +314,7 @@ function applyObfuscation(code, level, antiReverse) {
         extreme: [advancedControlFlowObfuscation, dataObfuscation, functionInlining, (c)=>junkCodeInsertion(c,preserveFunctionality), aggressiveRenaming, booleanObfuscation, numberObfuscation]
     };
 
-    if(anti[antiReverse]){
-        anti[antiReverse].forEach(fn=>{
-            if(typeof fn==='function') obf=fn(obf);
-        });
-    }
+    if(anti[antiReverse]) anti[antiReverse].forEach(fn => { if(typeof fn==='function') obf=fn(obf); });
 
     return obf;
 }
@@ -332,12 +325,12 @@ function obfuscateLocalVariables(code) {
     const replacements = {};
     let obf = code;
     let m;
-    while(m=regex.exec(code)){
-        const name=m[1];
+    while(m = regex.exec(code)){
+        const name = m[1];
         if(!replacements[name]){
             const newName = `_0x${Math.random().toString(16).slice(2,8)}${Math.random().toString(16).slice(2,8)}`;
-            replacements[name]=newName;
-            obf=obf.replace(new RegExp(`\\b${name}\\b`,'g'), newName);
+            replacements[name] = newName;
+            obf = obf.replace(new RegExp(`\\b${name}\\b`,'g'), newName);
         }
     }
     return obf;
@@ -358,30 +351,71 @@ function safeRemoveWhitespace(code){
     return newC;
 }
 
-function convertNumbersToHex(code){ return code.replace(/\b-?\d+(\.\d+)?\b/g, m=>parseFloat(m).toString(16).startsWith('-')?`-0x${parseFloat(m).toString(16).slice(1)}`:`0x${parseFloat(m).toString(16)}`); }
+function convertNumbersToHex(code){
+    return code.replace(/\b-?\d+(\.\d+)?\b/g, m=>{
+        const hex = parseFloat(m).toString(16);
+        return hex.startsWith('-') ? `-0x${hex.slice(1)}` : `0x${hex}`;
+    });
+}
 
-function stringManipulation(code){ return code.replace(/"([^"\\]*(?:\\.[^"\\]*)*)"/g,(m,s)=>`string.char(${[...s].map(c=>c.charCodeAt(0)).join(',')})`); }
+function stringManipulation(code){ 
+    return code.replace(/"([^"\\]*(?:\\.[^"\\]*)*)"/g,(m,s)=>`string.char(${[...s].map(c=>c.charCodeAt(0)).join(',')})`);
+}
 
 function basicControlFlowObfuscation(code){ return code.replace(/;/g,";if true then end;"); }
-function advancedControlFlowObfuscation(code){ const a=generateObfuscatedName(),b=generateObfuscatedName(); return `;local ${a}=0;local ${b}=1;if ${a}<${b} then while ${a}<${b} do ${a}=${a}+1;${b}=${b}+1; end end;`; }
 
-function deadCodeInsertion(code,preserve){ if(preserve) return code; const f=generateObfuscatedName(); return `local function ${f}() local ${generateObfuscatedName()}=10; end;`+code; }
+// --- Fixed Advanced Control Flow ---
+function advancedControlFlowObfuscation(code){
+    const a = generateObfuscatedName(), b = generateObfuscatedName();
+    return `do local ${a}=0; local ${b}=1; if ${a}<${b} then while ${a}<${b} do ${a}=${a}+1; ${b}=${b}+1; end end end\n` + code;
+}
 
-function aggressiveRenaming(code){ return code.replace(/\b([a-zA-Z_]\w*)\b/g,(name)=>isLuaKeyword(name)||isLuaStdLib(name)?name:generateObfuscatedName()); }
+// --- Junk & Dead Code ---
+function deadCodeInsertion(code,preserve){ 
+    if(preserve) return code;
+    const f = generateObfuscatedName();
+    return `local function ${f}() local ${generateObfuscatedName()}=10; end\n` + code; 
+}
+
+function junkCodeInsertion(code,preserve){
+    if(preserve) return code;
+    const stmts = [
+        `local ${generateObfuscatedName()}=1+1-1`,
+        `if true then end`,
+        `local ${generateObfuscatedName()}=string.char(72,101,108,108,111)`,
+        `local ${generateObfuscatedName()}={${generateObfuscatedName()}=1}`
+    ];
+    return stmts[Math.floor(Math.random()*stmts.length)] + '\n' + code;
+}
+
+// --- Function Inlining Fix ---
+function functionInlining(code){
+    return code.replace(/local function ([a-zA-Z_]\w*)\(([^)]*)\)\s*([\s\S]*?)end/g,(m,n,p,b)=>{
+        // Only inline simple single-line returns
+        const body = b.trim();
+        if(body.startsWith('return ')){
+            const expr = body.slice(7).trim();
+            const callRegex = new RegExp(`\\b${n}\\s*\\(([^)]*)\\)`, 'g');
+            return code.replace(callRegex, `(${expr})`);
+        }
+        return m;
+    });
+}
+
+// --- Aggressive Renaming Fix ---
+function aggressiveRenaming(code){
+    return code.replace(/\b([a-zA-Z_]\w*)\b/g,name=>isLuaKeyword(name)||isLuaStdLib(name)?name:generateObfuscatedName());
+}
 function isLuaKeyword(n){ return ["and","break","do","else","elseif","end","false","for","function","if","in","local","nil","not","or","repeat","return","then","true","until","while"].includes(n); }
 function isLuaStdLib(n){ return ["string","table","math","io","os","debug","coroutine","package"].some(k=>n===k||n.startsWith(k+".")); }
 
+// --- Boolean & Number ---
 function booleanObfuscation(code){ return code.replace(/\btrue\b/g,"(1==1)").replace(/\bfalse\b/g,"(1==0)"); }
 function numberObfuscation(code){ return code.replace(/\b-?\d+(\.\d+)?\b/g,m=>["("+m+"+0)","("+m+"*1)","("+m+"-0)","("+m+"/1)","("+m+"^1)"][Math.floor(Math.random()*5)]); }
-
 function dataObfuscation(code){ const offset=Math.floor(Math.random()*100)+1; return code.replace(/\b-?\d+(\.\d+)?\b/g,m=>`(${m}+${offset}-${offset})`); }
 
-function functionInlining(code){ return code.replace(/local function ([a-zA-Z_]\w*)\(([^)]*)\)\s*([\s\S]*?)end/g,(m,n,p,b)=>code.replace(new RegExp(`\\b${n}\\s*\\(([^)]*)\\)`,'g'),(call,args)=>b)); }
-
-function junkCodeInsertion(code,preserve){ if(preserve) return code; const stmts=[`local ${generateObfuscatedName()}=1+1-1;`,`if true then else end;`,`local ${generateObfuscatedName()}=string.char(72,101,108,108,111);`,`local ${generateObfuscatedName()}={${generateObfuscatedName()}=1};`]; return code.replace(/;/g,_=>`; ${stmts[Math.floor(Math.random()*stmts.length)]} ;`); }
-
-function addObfuscationMessage(code){ return "--[[ Obfuscated & Protected By Wondering Protection V1 ]]--\n"+code; }
-
+// --- Utilities ---
+function addObfuscationMessage(code){ return "--[[ Obfuscated & Protected By VxpeInjected.Lua_Obfuscator v.2.04.3 ]]--\n"+code; }
 function generateObfuscatedName(){ return `_0x${Math.random().toString(16).slice(2,8)}${Math.random().toString(16).slice(2,8)}`; }
 </script>
 </body>
