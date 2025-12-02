@@ -3,463 +3,404 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>VxpeInjected — Professional Portfolio</title>
-  <meta name="description" content="VxpeInjected — Python, Roblox Lua, JS, HTML/CSS — UI/UX designer, Project Manager, Moderator" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <title>Lua Jumbling Obfuscator / Deobfuscator</title>
   <style>
-    /* -------------------- Palette -------------------- */
-    :root{
-      --bg:#050303;            /* near black */
-      --panel:#0b0b0b;         /* deep black */
-      --accent:#b30000;        /* vivid red */
-      --accent-2:#7a0000;      /* darker red */
-      --muted:#888;            /* muted text */
-      --glass: rgba(255,255,255,0.03);
-      --glass-2: rgba(255,255,255,0.02);
-      --glow: 0 8px 30px rgba(179,0,0,0.16);
-      --glass-border: rgba(255,255,255,0.04);
-      --mono: 'JetBrains Mono', monospace;
-      --ui: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto;
-    }
-
-    /* Reset */
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0; font-family:var(--ui); background:linear-gradient(180deg,var(--bg),#080404 60%); color:#eee; -webkit-font-smoothing:antialiased;
-      -moz-osx-font-smoothing:grayscale; overflow-x:hidden;
-      background-attachment:fixed;
-    }
-
-    /* Page grid */
-    .wrap{max-width:1200px;margin:40px auto;padding:28px}
-
-    header{
-      display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 18px;border-radius:14px;background:linear-gradient(180deg,var(--panel),rgba(11,11,11,0.7));box-shadow:var(--glow);border:1px solid var(--glass-border);
-      position:sticky;top:18px;z-index:30;backdrop-filter:blur(6px);
-    }
-    .logo{display:flex;align-items:center;gap:12px}
-    .logo .mark{width:48px;height:48px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:grid;place-items:center;font-weight:800;color:#fff;font-family:var(--mono)}
-    nav{display:flex;gap:12px;align-items:center}
-    nav a{color:var(--muted);text-decoration:none;padding:8px 12px;border-radius:10px;font-weight:600}
-    nav a:hover{color:#fff;background:var(--glass)}
-
-    .cta{display:inline-flex;align-items:center;gap:10px;background:linear-gradient(90deg,var(--accent),var(--accent-2));padding:10px 14px;border-radius:10px;color:#fff;font-weight:700;box-shadow:0 10px 30px rgba(179,0,0,0.22);}
-
-    /* Hero */
-    .hero{display:grid;grid-template-columns:1fr 420px;gap:28px;margin-top:26px}
-    .hero-card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border-radius:18px;padding:28px;border:1px solid var(--glass-border);box-shadow:unset}
-
-    .hero h1{font-size:36px;margin:0;letter-spacing:-0.02em}
-    .eye-catch{display:flex;gap:12px;align-items:center}
-    .byline{color:var(--muted);margin-top:8px}
-    .skills-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
-    .skill-pill{padding:8px 12px;border-radius:999px;background:linear-gradient(90deg,rgba(255,255,255,0.02),transparent);border:1px solid var(--glass-border);font-weight:600}
-
-    /* Avatar / card */
-    .hero-right{position:relative}
-    .profile-card{height:100%;border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:14px;background:linear-gradient(180deg, rgba(179,0,0,0.08), rgba(0,0,0,0.6));border:1px solid rgba(255,255,255,0.02)}
-    .avatar{width:100%;height:260px;border-radius:12px;background:linear-gradient(135deg,#2a0808,#120101);display:grid;place-items:center;font-size:48px;font-weight:800;letter-spacing:1px;color:#fff;border:1px solid rgba(255,255,255,0.03)}
-    .meta{display:flex;justify-content:space-between;gap:10px;align-items:center}
-    .meta .numbers{display:flex;gap:10px}
-    .num{padding:10px 14px;border-radius:10px;background:var(--glass);border:1px solid var(--glass-border);min-width:86px;text-align:center}
-
-    /* Projects grid */
-    section{margin-top:34px}
-    .section-title{display:flex;align-items:center;justify-content:space-between;gap:10px}
-    .section-title h2{margin:0}
-    .filters{display:flex;gap:8px}
-    .filter{padding:8px 10px;border-radius:10px;border:1px solid var(--glass-border);background:var(--glass);cursor:pointer}
-
-    .projects-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:18px}
-    .project{border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.03);background:linear-gradient(180deg,rgba(255,255,255,0.015),transparent);position:relative}
-    .project .thumb{height:180px;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;background:linear-gradient(135deg, rgba(179,0,0,0.18), rgba(122,0,0,0.08));}
-    .project .meta{padding:12px}
-    .project h3{margin:0 0 8px 0}
-    .project p{margin:0;color:var(--muted);font-size:14px}
-    .project .tags{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
-    .tag{font-size:12px;padding:6px 8px;border-radius:8px;background:rgba(255,255,255,0.02);border:1px solid var(--glass-border)}
-    .project .actions{display:flex;gap:8px;margin-top:12px}
-    .btn{padding:8px 12px;border-radius:10px;border:1px solid var(--glass-border);background:transparent;color:#fff;cursor:pointer}
-    .btn.primary{background:linear-gradient(90deg,var(--accent),var(--accent-2));font-weight:700}
-
-    /* Modal */
-    .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:linear-gradient(180deg, rgba(0,0,0,0.7), rgba(0,0,0,0.8));z-index:100}
-    .modal.open{display:flex}
-    .modal-card{width:min(960px,92%);background:linear-gradient(180deg,#090909, #0b0505);border-radius:14px;padding:20px;border:1px solid var(--glass-border)}
-
-    /* Timeline */
-    .timeline{margin-top:18px;padding:18px;border-radius:12px;background:var(--glass-2);border:1px solid var(--glass-border)}
-    .timeline li{list-style:none;padding:12px 0;border-bottom:1px dashed rgba(255,255,255,0.03)}
-    .timeline li:last-child{border-bottom:none}
-    .timeline h4{margin:0}
-
-    /* Contact */
-    .contact-grid{display:grid;grid-template-columns:1fr 360px;gap:18px}
-    .contact-form{padding:18px;border-radius:12px;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));border:1px solid var(--glass-border)}
-    .field{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
-    input,textarea{background:transparent;border:1px solid var(--glass-border);padding:12px;border-radius:8px;color:#fff;resize:vertical}
-    .small{font-size:13px;color:var(--muted)}
-
-    /* Footer */
-    footer{margin-top:40px;padding:20px;border-radius:12px;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));border:1px solid var(--glass-border);display:flex;justify-content:space-between;align-items:center}
-
-    /* Responsive */
-    @media (max-width:1060px){
-      .hero{grid-template-columns:1fr 320px}
-      .projects-grid{grid-template-columns:repeat(2,1fr)}
-      .contact-grid{grid-template-columns:1fr}
-    }
-    @media (max-width:760px){
-      .wrap{padding:16px;margin:16px}
-      header{flex-direction:column;align-items:flex-start}
-      .hero{grid-template-columns:1fr}
-      .projects-grid{grid-template-columns:1fr}
-      nav{flex-wrap:wrap}
-      .avatar{height:180px}
-    }
-
-    /* Micro animations */
-    @keyframes floaty{0%{transform:translateY(0)}50%{transform:translateY(-6px)}100%{transform:translateY(0)}}
-    .avatar{animation:floaty 6s ease-in-out infinite}
-    .glint{position:relative;overflow:hidden}
-    .glint:after{content:"";position:absolute;left:-50%;top:0;width:50%;height:100%;transform:skewX(-18deg);background:linear-gradient(90deg,transparent,rgba(255,255,255,0.03),transparent);animation:shimmer 4s infinite}
-    @keyframes shimmer{0%{left:-50%}100%{left:150%}}
-
+    :root{--bg:#0f1724;--panel:#0b1220;--muted:#9aa4b2;--accent:#7c3aed}
+    html,body{height:100%;margin:0;font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,"Helvetica Neue",Arial}
+    body{background:linear-gradient(180deg,#071023 0%, #071428 100%);color:#e6eef6;display:flex;align-items:center;justify-content:center;padding:28px}
+    .card{width:100%;max-width:1100px;background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);border-radius:12px;padding:18px;box-shadow:0 6px 30px rgba(2,6,23,.6)}
+    header{display:flex;gap:12px;align-items:center;margin-bottom:12px}
+    h1{font-size:18px;margin:0}
+    .tabs{margin-left:auto;display:flex;gap:8px}
+    .tab{padding:8px 12px;border-radius:8px;background:transparent;border:1px solid transparent;color:var(--muted);cursor:pointer}
+    .tab.active{background:linear-gradient(90deg,rgba(124,58,237,.14),rgba(59,130,246,.05));border-color:rgba(124,58,237,.18);color:#e9e7ff}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    textarea{width:100%;height:420px;background:transparent;border:1px solid rgba(255,255,255,0.04);padding:12px;border-radius:8px;color:inherit;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;resize:vertical}
+    .controls{display:flex;gap:8px;align-items:center;margin-top:8px}
+    button{background:var(--accent);border:0;color:white;padding:8px 12px;border-radius:8px;cursor:pointer}
+    .muted{color:var(--muted);font-size:13px}
+    .options{display:flex;gap:10px;flex-wrap:wrap}
+    label{display:inline-flex;gap:8px;align-items:center}
+    .small{font-size:12px;padding:6px 8px;border-radius:6px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.03)}
+    .footer{display:flex;justify-content:space-between;align-items:center;margin-top:12px}
+    .copy{background:transparent;border:1px solid rgba(255,255,255,0.04);padding:8px 10px;border-radius:8px;color:var(--muted);cursor:pointer}
+    .help{font-size:12px;color:var(--muted)}
+    .hint{background:rgba(255,255,255,0.02);padding:8px;border-radius:8px;border:1px dashed rgba(255,255,255,0.02);font-size:13px}
+    @media(max-width:900px){.grid{grid-template-columns:1fr;}.card{padding:12px}}
   </style>
 </head>
 <body>
-  <div class="wrap">
+  <div class="card">
     <header>
-      <div class="logo">
-        <div class="mark">VI</div>
-        <div>
-          <div style="font-weight:800;letter-spacing:0.6px">VxpeInjected</div>
-          <div style="font-size:12px;color:var(--muted)">Senior Engineer · UI/UX · PM · Moderator</div>
-        </div>
+      <h1>Lua Jumbling Obfuscator — single-file (index.html)</h1>
+      <div class="tabs">
+        <button id="tab-obf" class="tab active">Obfuscate</button>
+        <button id="tab-deobf" class="tab">Deobfuscate</button>
       </div>
-      <nav>
-        <a href="#about">About</a>
-        <a href="#projects">Projects</a>
-        <a href="#case">Case Studies</a>
-        <a href="#services">Services</a>
-        <a href="#contact">Contact</a>
-        <a class="cta" href="#contact">Let's talk</a>
-      </nav>
     </header>
 
-    <main>
-      <section class="hero">
-        <div class="hero-card">
-          <div class="eye-catch">
-            <div style="border-radius:10px;padding:10px 12px;background:linear-gradient(90deg,var(--accent),var(--accent-2));font-weight:700">Senior Dev</div>
-            <div style="color:var(--muted)">| Full-stack systems, bots, games & UX</div>
-          </div>
-          <h1>Build fast. Design purposeful. Ship with care.</h1>
-          <p class="byline">I am a professional programmer specializing in Python, Roblox Lua, HTML/CSS and JavaScript. I architect robust systems — from Discord bots and Roblox systems to production websites. I also design polished UI/UX and run teams as a project manager & moderator.</p>
+    <div id="obfPage">
+      <div class="grid">
+        <div>
+          <div class="muted">Paste Lua source here</div>
+          <textarea id="inputCode" placeholder="-- paste lua code...">-- Example: simple function
+local function greet(name)
+  print("Hello, "..name.."!")
+end
 
-          <div class="skills-row">
-            <div class="skill-pill">Python</div>
-            <div class="skill-pill">Roblox Lua</div>
-            <div class="skill-pill">JavaScript</div>
-            <div class="skill-pill">HTML &amp; CSS</div>
-            <div class="skill-pill">UI/UX Design</div>
-            <div class="skill-pill">Project Management</div>
-            <div class="skill-pill">Moderation</div>
-          </div>
+greet("world")
+</textarea>
 
-          <div style="display:flex;gap:10px;margin-top:18px;align-items:center">
-            <a class="btn primary" href="#projects">Explore projects</a>
-            <button class="btn" onclick="copyEmail()">Copy email</button>
-            <a class="btn" href="#resume" onclick="downloadResume()">Download CV</a>
-          </div>
-
-          <div style="margin-top:20px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
-            <div class="num">10+ yrs experience</div>
-            <div class="num">100+ projects</div>
-            <div class="num">100k+ lines code</div>
-          </div>
-
-          <div style="margin-top:20px;color:var(--muted);font-size:13px">Pro tip: click any project to open a full modal case preview with screenshots, tech stack and code snippets.</div>
-        </div>
-
-        <aside class="hero-right">
-          <div class="profile-card">
-            <div class="avatar glint">VI</div>
-            <div style="display:flex;justify-content:space-between;align-items:center">
-              <div>
-                <div style="font-weight:800">VxpeInjected</div>
-                <div style="font-size:13px;color:var(--muted)">Lead Programmer · UI/UX Designer · PM</div>
-              </div>
-              <div style="text-align:right">
-                <div style="font-weight:800">Remote</div>
-                <div style="font-size:12px;color:var(--muted)">Available for hire</div>
-              </div>
+          <div class="controls">
+            <div class="options">
+              <label class="small"><input type="checkbox" id="optStrings" checked /> Obfuscate strings</label>
+              <label class="small"><input type="checkbox" id="optJunk" checked /> Insert junk no-ops</label>
+              <label class="small"><input type="checkbox" id="optShort" /> Short names (a,b,c..)</label>
+              <label class="small"><input type="checkbox" id="optHeader" checked /> Embed map header (reversible)</label>
             </div>
-            <div style="display:flex;gap:8px;justify-content:space-between;align-items:center">
-              <div class="numbers">
-                <div class="num"><div style="font-weight:800">Python</div><div class="small">Expert</div></div>
-                <div class="num"><div style="font-weight:800">Roblox</div><div class="small">Expert</div></div>
-                <div class="num"><div style="font-weight:800">JS</div><div class="small">Advanced</div></div>
-              </div>
+            <div style="margin-left:auto;display:flex;gap:8px">
+              <button id="btnObf">Obfuscate</button>
+              <button id="btnClear" class="small">Clear output</button>
             </div>
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
-              <div style="color:var(--muted);font-size:13px">Open-source & commercial work</div>
-              <div style="display:flex;gap:8px">
-                <a class="btn" href="#">GitHub</a>
-                <a class="btn" href="#">Dribbble</a>
-              </div>
-            </div>
-          </div>
-        </aside>
-      </section>
-
-      <section id="projects">
-        <div class="section-title">
-          <h2>Featured Projects</h2>
-          <div class="filters">
-            <div class="filter" data-filter="all">All</div>
-            <div class="filter" data-filter="roblox">Roblox</div>
-            <div class="filter" data-filter="bots">Bots</div>
-            <div class="filter" data-filter="web">Web</div>
-            <div class="filter" data-filter="ux">UX</div>
           </div>
         </div>
 
-        <div class="projects-grid" id="projectsGrid">
-          <!-- Project template card -->
-          <div class="project" data-tags="roblox,systems">
-            <div class="thumb">Roblox Elevator System</div>
-            <div class="meta">
-              <h3>Smart Elevator System</h3>
-              <p>Teleportation elevator with scheduling, locking and music per-client. Priority algorithm for efficient stops.</p>
-              <div class="tags"><span class="tag">Roblox</span><span class="tag">Systems</span><span class="tag">Lua</span></div>
-              <div class="actions"><button class="btn primary" onclick="openModal(0)">Case study</button><button class="btn" onclick="openLive('#')">Code</button></div>
+        <div>
+          <div class="muted">Obfuscated output</div>
+          <textarea id="outputCode" placeholder="obfuscated output" readonly></textarea>
+
+          <div class="footer">
+            <div style="display:flex;gap:8px">
+              <button id="btnCopy" class="copy">Copy</button>
+              <button id="btnDownload" class="copy">Download</button>
             </div>
-          </div>
-
-          <div class="project" data-tags="bots,python">
-            <div class="thumb">Discord Staff Onboarding</div>
-            <div class="meta">
-              <h3>Discord Onboarding Bot</h3>
-              <p>Interactive button-based hiring/firing flow, verification puzzle, role automation and moderation tools.</p>
-              <div class="tags"><span class="tag">Discord</span><span class="tag">Python</span><span class="tag">Bot</span></div>
-              <div class="actions"><button class="btn primary" onclick="openModal(1)">Case study</button><button class="btn" onclick="openLive('#')">Live</button></div>
-            </div>
-          </div>
-
-          <div class="project" data-tags="web,uiux">
-            <div class="thumb">Design System & Website</div>
-            <div class="meta">
-              <h3>Design System + Studio</h3>
-              <p>Atomic UI kit, responsive components, accessibility-first and a marketing website with performance budgets.</p>
-              <div class="tags"><span class="tag">Web</span><span class="tag">UI/UX</span><span class="tag">HTML/CSS</span></div>
-              <div class="actions"><button class="btn primary" onclick="openModal(2)">Case study</button><button class="btn" onclick="openLive('#')">Demo</button></div>
-            </div>
-          </div>
-
-          <div class="project" data-tags="roblox,games">
-            <div class="thumb">Custom Inventory</div>
-            <div class="meta">
-              <h3>Custom Inventory System</h3>
-              <p>Drag-and-drop inventory, hotbar integration, tool transfer and client-server smoothness for multiplayer.</p>
-              <div class="tags"><span class="tag">Roblox</span><span class="tag">Lua</span><span class="tag">UI</span></div>
-              <div class="actions"><button class="btn primary" onclick="openModal(3)">Case study</button><button class="btn" onclick="openLive('#')">Code</button></div>
-            </div>
-          </div>
-
-          <div class="project" data-tags="web,python">
-            <div class="thumb">Analytics Dashboard</div>
-            <div class="meta">
-              <h3>Analytics & Admin</h3>
-              <p>Realtime metrics, role based admin, and exportable reports. Built with Python backend and modern front-end stacks.</p>
-              <div class="tags"><span class="tag">Python</span><span class="tag">Web</span><span class="tag">Dashboard</span></div>
-              <div class="actions"><button class="btn primary" onclick="openModal(4)">Case study</button><button class="btn" onclick="openLive('#')">Demo</button></div>
-            </div>
-          </div>
-
-          <div class="project" data-tags="ux,design">
-            <div class="thumb">Moderation UX</div>
-            <div class="meta">
-              <h3>Moderator Tools</h3>
-              <p>Intuitive moderation UI, strikes, snipes, timeouts, mass-actions and audit-ready logs to keep communities safe.</p>
-              <div class="tags"><span class="tag">UX</span><span class="tag">Moderator</span><span class="tag">Tools</span></div>
-              <div class="actions"><button class="btn primary" onclick="openModal(5)">Case study</button><button class="btn" onclick="openLive('#')">Demo</button></div>
-            </div>
-          </div>
-
-        </div>
-
-      </section>
-
-      <section id="case">
-        <div class="section-title"><h2>Case Studies & Process</h2></div>
-        <div class="timeline">
-          <ul>
-            <li><h4>Discovery & Research</h4><div class="small">User interviews, telemetry audit, edge-case mapping.</div></li>
-            <li><h4>Design & Prototyping</h4><div class="small">High-fidelity mockups, interactive prototypes, accessibility pass.</div></li>
-            <li><h4>Development & QA</h4><div class="small">Iterative sprints, automated tests, integration and load testing.</div></li>
-            <li><h4>Launch & Ops</h4><div class="small">Monitoring, fast patches, player support and moderation tooling.</div></li>
-          </ul>
-        </div>
-      </section>
-
-      <section id="services">
-        <div class="section-title"><h2>Services</h2></div>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px">
-          <div class="hero-card">
-            <h3>Custom Development</h3>
-            <p class="small">Python backends, Discord bots, Roblox systems, production-ready websites. Reliable, testable code.</p>
-            <div style="margin-top:12px"><span class="tag">Architecture</span> <span class="tag">Sprints</span></div>
-          </div>
-          <div class="hero-card">
-            <h3>UI / UX Design</h3>
-            <p class="small">Design systems, prototypes, user testing and polished interactions that delight users.</p>
-            <div style="margin-top:12px"><span class="tag">Figma</span> <span class="tag">Accessibility</span></div>
-          </div>
-          <div class="hero-card">
-            <h3>PM & Moderation</h3>
-            <p class="small">Roadmaps, time estimation, hiring flows, moderation tooling and escalation paths.</p>
-            <div style="margin-top:12px"><span class="tag">Workflow</span> <span class="tag">Onboarding</span></div>
+            <div class="help">Header mapping allows accurate deobfuscation.</div>
           </div>
         </div>
-      </section>
+      </div>
 
-      <section id="contact">
-        <div class="section-title"><h2>Contact & Availability</h2></div>
-        <div class="contact-grid">
-          <div class="contact-form">
-            <form onsubmit="handleContact(event)">
-              <div class="field">
-                <label class="small">Name</label>
-                <input name="name" required />
-              </div>
-              <div class="field">
-                <label class="small">Email</label>
-                <input type="email" name="email" required />
-              </div>
-              <div class="field">
-                <label class="small">Message</label>
-                <textarea name="message" rows="6" required></textarea>
-              </div>
-              <div style="display:flex;gap:10px;align-items:center">
-                <button class="btn primary" type="submit">Send message</button>
-                <div class="small" id="contactStatus">I reply within 48 hours.</div>
-              </div>
-            </form>
-          </div>
+      <div style="margin-top:12px" class="hint">How it works: this tool renames identifiers (excluding Lua keywords & builtins) to random or short names, optionally encodes strings as <code>string.char(...)</code>, inserts harmless junk locals, and stores a reversible mapping in a top comment when header is enabled. Use the Deobfuscate tab to reverse.</div>
+    </div>
 
-          <aside class="hero-card">
-            <h3>Quick info</h3>
-            <div class="small" style="margin-top:8px">
-              <strong>Email:</strong> <span id="email">vxpe@example.com</span> <button class="btn" onclick="copyEmail()">Copy</button><br>
-              <strong>Location:</strong> Remote<br>
-              <strong>Availability:</strong> Open for select contracts
-            </div>
-
-            <div style="margin-top:12px">
-              <h4 style="margin:0">Social</h4>
-              <div style="display:flex;gap:8px;margin-top:8px">
-                <a class="btn" href="#">GitHub</a>
-                <a class="btn" href="#">LinkedIn</a>
-                <a class="btn" href="#">Twitter</a>
-              </div>
-            </div>
-          </aside>
-        </div>
-      </section>
-
-      <footer>
-        <div>© <span id="year"></span> VxpeInjected — Built with care.</div>
-        <div style="display:flex;gap:8px;align-items:center">
-          <div class="small">Hosted on GitHub Pages</div>
-          <a class="btn" href="#">Source</a>
-        </div>
-      </footer>
-    </main>
-  </div>
-
-  <!-- Modal container -->
-  <div class="modal" id="modal">
-    <div class="modal-card" role="dialog" aria-modal="true" id="modalCard">
-      <button class="btn" style="float:right" onclick="closeModal()">Close</button>
-      <div id="modalContent">Loading…</div>
+    <div id="deobfPage" style="display:none;margin-top:12px">
+      <div class="muted">Paste obfuscated code (with header) or raw — the tool will try to reverse it</div>
+      <textarea id="deobfInput" style="height:260px" placeholder="paste obfuscated code..."></textarea>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button id="btnDeobf">Deobfuscate</button>
+        <button id="btnDeobfCopy" class="copy">Copy</button>
+        <button id="btnDeobfClear" class="small">Clear</button>
+      </div>
+      <div style="margin-top:8px">
+        <div class="muted">Deobfuscated output</div>
+        <textarea id="deobfOutput" style="height:220px" readonly placeholder="deobfuscated output..."></textarea>
+      </div>
+      <div style="margin-top:8px" class="hint">If there is no header mapping this tool will still attempt to decode <code>string.char(...)</code> patterns back into literal strings and will perform a best-effort identifier renaming undo (may be lossy).</div>
     </div>
   </div>
 
   <script>
-    // --- Basic interactivity ---
-    const projects = [
-      {title:'Smart Elevator System',desc:'Teleportation elevator with scheduling, locking and music per-client.',tech:['Lua','Roblox','Systems'],body:'Full case notes, code snippets and architecture diagrams. Replace this sample with your real case study.'},
-      {title:'Discord Onboarding Bot',desc:'Interactive button-based hiring/firing flow and verification puzzle.',tech:['Python','Discord','Bot'],body:'Detailed commands, sample flows and moderation practices.'},
-      {title:'Design System + Studio',desc:'Atomic UI kit and marketing studio with accessibility-first components.',tech:['HTML','CSS','Design'],body:'Component docs, tokens, and performance metrics.'},
-      {title:'Custom Inventory System',desc:'Drag-and-drop inventory with hotbar integration for Roblox.',tech:['Lua','UI','Roblox'],body:'Showcases predictable client-server handoff and UX decisions.'},
-      {title:'Analytics & Admin',desc:'Realtime metrics and exportable reports.',tech:['Python','Web','Dashboard'],body:'Includes sample endpoints and telemetry architecture.'},
-      {title:'Moderator Tools',desc:'Strikes, snipes, timeouts and mass-actions.',tech:['UX','Moderator','Tools'],body:'Audit logs, role flows and escalation.'}
-    ];
+    // --- small util
+    const el = id => document.getElementById(id);
 
-    function openModal(i){
-      const m = document.getElementById('modal');
-      const content = document.getElementById('modalContent');
-      const p = projects[i] || {title:'Project','desc':'n/a','body':'No data'};
-      content.innerHTML = `<h2>${p.title}</h2><p style=\"color:var(--muted)\">${p.desc}</p><div style=\"margin-top:12px;display:flex;gap:8px;flex-wrap:wrap\">${p.tech? p.tech.map(t=>`<div class=\"tag\">${t}</div>`).join(''):''}</div><hr style=\"margin:14px 0;border-color:rgba(255,255,255,0.03)\"><p>${p.body}</p><pre style=\"margin-top:12px;padding:12px;border-radius:8px;background:rgba(0,0,0,0.45);font-family:var(--mono);font-size:13px;color:#fff;max-height:240px;overflow:auto\">// Example snippet\nfunction example() {\n  console.log('Replace with code snippet');\n}</pre>`;
-      m.classList.add('open');
+    // tabs
+    el('tab-obf').onclick = () => { el('obfPage').style.display=''; el('deobfPage').style.display='none'; el('tab-obf').classList.add('active'); el('tab-deobf').classList.remove('active'); }
+    el('tab-deobf').onclick = () => { el('obfPage').style.display='none'; el('deobfPage').style.display=''; el('tab-obf').classList.remove('active'); el('tab-deobf').classList.add('active'); }
+
+    // reserved keywords & common globals to avoid renaming
+    const LUA_KEYWORDS = new Set(["and","break","do","else","elseif","end","false","for","function","goto","if","in","local","nil","not","or","repeat","return","then","true","until","while"]);
+    const LUA_BUILTINS = new Set(["print","pairs","ipairs","next","type","assert","error","pcall","xpcall","tonumber","tostring","math","string","table","os","coroutine","require","package","setmetatable","getmetatable","rawget","rawset","rawlen","select","unpack","utf8"]);
+
+    function randName(short=false,i=0){
+      if(short){
+        // simple short names: a,b,... z, aa, ab...
+        const alphabet = 'abcdefghijklmnopqrstuvwxyz';
+        let n = i;
+        let out = '';
+        do { out = alphabet[n % 26] + out; n = Math.floor(n/26)-1; } while(n>=0);
+        return '_' + out;
+      }
+      // random-ish but deterministic enough
+      const r = Math.floor(Math.random()*1e9).toString(36);
+      return '_Gx' + r;
     }
-    function closeModal(){document.getElementById('modal').classList.remove('open')}
 
-    // Filters
-    document.querySelectorAll('.filter').forEach(el=>el.addEventListener('click',()=>{
-      const q = el.dataset.filter;
-      document.querySelectorAll('.project').forEach(card=>{
-        if(q==='all') card.style.display='block';
-        else {
-          const tags = card.dataset.tags.split(',');
-          card.style.display = tags.includes(q) ? 'block' : 'none';
+    // scanner-based obfuscation: avoids replacing inside strings/comments
+    function obfuscateLua(src, options={strings:true,junk:true,short:false,header:true}){
+      let i=0,n=src.length;
+      const out=[];
+      const idMap = {};
+      const ids = [];
+      // first pass: collect identifiers (outside literals/comments)
+      let mode='normal'; // normal, sq, dq, bracket (with level), slcomment, mlcomment
+      let bracketLevel=0;
+      while(i<n){
+        const ch = src[i];
+        // handle entry into modes
+        if(mode==='normal'){
+          if(ch==='\'') { mode='sq'; i++; continue; }
+          if(ch==='\"') { mode='dq'; i++; continue; }
+          if(ch==='-' && src[i+1]=='-'){
+            if(src[i+2]=='[' && src[i+3]=='['){ mode='mlcomment'; i+=4; continue; }
+            mode='slcomment'; i+=2; continue;
+          }
+          if(ch==='[' && src[i+1]=='['){ mode='bracket'; bracketLevel=2; i+=2; continue; }
+          // identifier
+          if(/[A-Za-z_]/.test(ch)){
+            let j=i+1; while(j<n && /[A-Za-z0-9_]/.test(src[j])) j++;
+            const tok = src.slice(i,j);
+            if(!LUA_KEYWORDS.has(tok) && !LUA_BUILTINS.has(tok) && tok.length>0){
+              if(!idMap.hasOwnProperty(tok)){
+                idMap[tok]=null; ids.push(tok);
+              }
+            }
+            i=j; continue;
+          }
+          i++; continue;
         }
-      })
-    }))
+        // inside single-line comment
+        if(mode==='slcomment'){
+          if(ch==='\n'){ mode='normal'; }
+          i++; continue;
+        }
+        if(mode==='mlcomment'){
+          if(ch===']' && src[i+1]==']'){ mode='normal'; i+=2; continue; }
+          i++; continue;
+        }
+        if(mode==='sq'){
+          if(ch==='\\') { i+=2; continue; }
+          if(ch==='\'') { mode='normal'; i++; continue; }
+          i++; continue;
+        }
+        if(mode==='dq'){
+          if(ch==='\\') { i+=2; continue; }
+          if(ch==='\"') { mode='normal'; i++; continue; }
+          i++; continue;
+        }
+        if(mode==='bracket'){
+          if(ch===']' && src[i+1]==']'){ mode='normal'; i+=2; continue; }
+          i++; continue;
+        }
+      }
 
-    // Projects grid quick open mapping
-    function openLive(url){ window.open(url,'_blank') }
+      // create mapping
+      let idx = 0;
+      for(const id of ids){
+        idMap[id] = randName(options.short, idx++);
+      }
 
-    // Contact
-    function handleContact(e){
-      e.preventDefault();
-      const f = new FormData(e.target);
-      // Basic client-side validation
-      document.getElementById('contactStatus').innerText='Sending…';
-      // Replace with your endpoint or Formspree/Netlify function
-      setTimeout(()=>document.getElementById('contactStatus').innerText='Message sent — I usually reply within 48 hours.',700);
-      e.target.reset();
+      // second pass: produce obfuscated, replacing identifiers only in normal mode
+      i=0; mode='normal'; bracketLevel=0; let junkCounter=0;
+      while(i<n){
+        const ch = src[i];
+        if(mode==='normal'){
+          if(ch==='\'') { out.push(ch); mode='sq'; i++; continue; }
+          if(ch==='\"') { out.push(ch); mode='dq'; i++; continue; }
+          if(ch==='-' && src[i+1]=='-'){
+            if(src[i+2]=='[' && src[i+3]=='['){ out.push('--[['); mode='mlcomment'; i+=4; continue; }
+            out.push('--'); mode='slcomment'; i+=2; continue;
+          }
+          if(ch==='[' && src[i+1]=='['){ out.push('[['); mode='bracket'; i+=2; continue; }
+          if(/[A-Za-z_]/.test(ch)){
+            let j=i+1; while(j<n && /[A-Za-z0-9_]/.test(src[j])) j++;
+            const tok = src.slice(i,j);
+            if(idMap.hasOwnProperty(tok)){
+              out.push(idMap[tok]);
+            } else {
+              out.push(tok);
+            }
+            i=j; continue;
+          }
+          // normal char
+          out.push(ch); i++; continue;
+        }
+        if(mode==='slcomment'){
+          if(ch==='\n'){ out.push(ch); mode='normal'; }
+          else out.push(ch);
+          i++; continue;
+        }
+        if(mode==='mlcomment'){
+          if(ch===']' && src[i+1]==']'){ out.push(']]'); mode='normal'; i+=2; continue; }
+          out.push(ch); i++; continue;
+        }
+        if(mode==='sq'){
+          // capture string and optionally obfuscate as string.char(...) for reversible encode
+          let j=i; let s='';
+          while(j<n){
+            const c=src[j]; if(c==='\\'){ s+=c+src[j+1]; j+=2; continue; }
+            if(c=='\'') { j++; break; }
+            s+=c; j++; }
+          // s contains string body (not including quotes)
+          if(options.strings){
+            // convert to string.char(...) expression
+            const codes = [];
+            for(let k=0;k<s.length;k++){ codes.push(s.charCodeAt(k)); }
+            out.push("'" + "" + "'" );
+            // instead of quoting, push a string.char(...) that concatenates (to keep as expression)
+            // we'll place a marker in comment to indicate this spot was a string char expression: /*STR*/string.char(...)
+            // but we need valid lua: use (string.char(x,y,...))
+            out.pop();
+            out.push('(' + 'string.char(' + codes.join(',') + '))');
+          } else {
+            out.push("'" + s + "'");
+          }
+          i=j; mode='normal'; continue;
+        }
+        if(mode==='dq'){
+          let j=i; let s='';
+          while(j<n){
+            const c=src[j]; if(c==='\\'){ s+=c+src[j+1]; j+=2; continue; }
+            if(c=='\"') { j++; break; }
+            s+=c; j++; }
+          if(options.strings){
+            const codes = [];
+            for(let k=0;k<s.length;k++){ codes.push(s.charCodeAt(k)); }
+            out.push('(' + 'string.char(' + codes.join(',') + '))');
+          } else {
+            out.push('"' + s + '"');
+          }
+          i=j; mode='normal'; continue;
+        }
+        if(mode==='bracket'){
+          // long bracket literal -- copy until closing ]]
+          let j=i; while(j<n){ if(src[j]==']' && src[j+1]==']'){ out.push(src.slice(i,j)); out.push(']]'); j+=2; break; } j++; }
+          i=j; mode='normal'; continue;
+        }
+      }
+
+      let obf = out.join('');
+
+      // insert junk no-ops (harmless locals) between top-level lines if requested
+      if(options.junk){
+        const lines = obf.split('\n');
+        for(let k=0;k<lines.length;k++){
+          if(Math.random()<0.12 && lines[k].trim()!=='' ){
+            lines[k] = lines[k] + '\nlocal ' + randName(false) + ' = nil -- junk';
+          }
+        }
+        obf = lines.join('\n');
+      }
+
+      // header mapping
+      let header='';
+      if(options.header){
+        const meta = { map: idMap, strings: !!options.strings, junk: !!options.junk };
+        const json = JSON.stringify(meta);
+        const b64 = btoa(unescape(encodeURIComponent(json)));
+        header = '--[[OBF_MAPPING:' + b64 + ']]\n';
+        obf = header + obf;
+      }
+
+      return obf;
     }
 
-    // Utility
-    function copyEmail(){
-      navigator.clipboard?.writeText(document.getElementById('email').innerText).then(()=>{
-        alert('Email copied to clipboard')
-      })
+    // deobfuscator: uses header mapping if present, otherwise tries to decode string.char(...) and simple reverse mapping heuristics
+    function deobfuscateLua(src){
+      // try header
+      const headerMatch = src.match(/^\-\-\[\[OBF_MAPPING:([A-Za-z0-9+/=]+)\]\]/);
+      let content = src;
+      let map = null;
+      if(headerMatch){
+        try{
+          const json = decodeURIComponent(escape(atob(headerMatch[1])));
+          const meta = JSON.parse(json);
+          map = meta.map;
+          content = src.replace(/^\-\-\[\[OBF_MAPPING:[A-Za-z0-9+/=]+\]\]\n?/, '');
+        }catch(e){ console.warn('bad header',e); }
+      }
+
+      // if map exists, invert mapping and replace identifiers (careful with strings/comments) using scanner
+      if(map){
+        // invert
+        const inv = {};
+        for(const k in map) inv[map[k]] = k;
+        // scanner to replace only outside strings/comments
+        let i=0,n=content.length,mode='normal',out=[];
+        while(i<n){
+          const ch = content[i];
+          if(mode==='normal'){
+            if(ch==='\'') { out.push(ch); mode='sq'; i++; continue; }
+            if(ch==='\"') { out.push(ch); mode='dq'; i++; continue; }
+            if(ch==='-' && content[i+1]=='-'){
+              if(content[i+2]=='[' && content[i+3]=='['){ out.push('--[['); mode='mlcomment'; i+=4; continue; }
+              out.push('--'); mode='slcomment'; i+=2; continue;
+            }
+            if(ch==='[' && content[i+1]=='['){ out.push('[['); mode='bracket'; i+=2; continue; }
+            if(/[A-Za-z_]/.test(ch)){
+              let j=i+1; while(j<n && /[A-Za-z0-9_]/.test(content[j])) j++;
+              const tok = content.slice(i,j);
+              if(inv.hasOwnProperty(tok)) out.push(inv[tok]); else out.push(tok);
+              i=j; continue;
+            }
+            out.push(ch); i++; continue;
+          }
+          if(mode==='slcomment'){
+            if(ch==='\n'){ out.push(ch); mode='normal'; } else out.push(ch); i++; continue;
+          }
+          if(mode==='mlcomment'){
+            if(ch===']' && content[i+1]==']'){ out.push(']]'); mode='normal'; i+=2; continue; } out.push(ch); i++; continue;
+          }
+          if(mode==='sq'){
+            // if we see (string.char(...)) pattern here, leave as-is; else copy
+            if(content.substr(i,1)=="\""){}
+            // find closing '\''
+            let j=i; while(j< n){ if(content[j]=='\\'){ j+=2; continue; } if(content[j]=='\'') { j++; break; } j++; }
+            out.push(content.slice(i,j)); i=j; mode='normal'; continue;
+          }
+          if(mode==='dq'){
+            let j=i; while(j< n){ if(content[j]=='\\'){ j+=2; continue; } if(content[j]=='\"') { j++; break; } j++; }
+            out.push(content.slice(i,j)); i=j; mode='normal'; continue;
+          }
+          if(mode==='bracket'){
+            let j=i; while(j<n){ if(content[j]==']' && content[j+1]==']'){ out.push(content.slice(i,j)); out.push(']]'); j+=2; break; } j++; }
+            i=j; mode='normal'; continue;
+          }
+        let res = out.join('');
+        // also try decode string.char(...) sequences into literal strings
+        res = res.replace(/\(\s*string\.char\s*\(([^)]*)\)\s*\)/g, (m,grp)=>{
+          try{
+            const nums = grp.split(',').map(s=>parseInt(s.trim())).filter(x=>!isNaN(x));
+            return '"' + nums.map(n=>String.fromCharCode(n)).join('') + '"';
+          }catch(e){ return m; }
+        });
+        return res;
+      }
+
+      // no header: best-effort
+      // decode string.char(...) patterns
+      let res = src.replace(/string\.char\s*\(([^)]*)\)/g,(m,grp)=>{
+        const nums = grp.split(',').map(s=>parseInt(s.trim())).filter(x=>!isNaN(x));
+        return '"' + nums.map(n=>String.fromCharCode(n)).join('') + '"';
+      });
+      return res;
     }
 
-    function downloadResume(){
-      // Replace with your resume url
-      const data = 'data:application/pdf;base64,';
-      // If you host resume on GitHub, link directly to raw file.
-      window.open('#','_blank')
+    // UI bindings
+    el('btnObf').onclick = ()=>{
+      const src = el('inputCode').value;
+      const opts = { strings: el('optStrings').checked, junk: el('optJunk').checked, short: el('optShort').checked, header: el('optHeader').checked };
+      try{
+        const obf = obfuscateLua(src, opts);
+        el('outputCode').value = obf;
+      }catch(e){ el('outputCode').value = '-- error: '+e.message; }
+    }
+    el('btnClear').onclick = ()=>{ el('outputCode').value=''; }
+    el('btnCopy').onclick = ()=>{ el('outputCode').select(); document.execCommand('copy'); }
+    el('btnDownload').onclick = ()=>{
+      const blob = new Blob([el('outputCode').value],{type:'text/plain'});
+      const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='obfuscated.lua'; a.click(); URL.revokeObjectURL(a.href);
     }
 
-    // Fill year
-    document.getElementById('year').innerText = new Date().getFullYear();
+    el('btnDeobf').onclick = ()=>{
+      const s = el('deobfInput').value;
+      try{ el('deobfOutput').value = deobfuscateLua(s); }catch(e){ el('deobfOutput').value='-- error: '+e.message }
+    }
+    el('btnDeobfCopy').onclick = ()=>{ el('deobfOutput').select(); document.execCommand('copy'); }
+    el('btnDeobfClear').onclick = ()=>{ el('deobfInput').value=''; el('deobfOutput').value=''; }
 
-    // Small UX: keyboard close modal
-    document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeModal() })
+    // small UX: ctrl+enter to obfuscate/deobfuscate
+    el('inputCode').addEventListener('keydown',e=>{ if(e.ctrlKey && e.key==='Enter') el('btnObf').click(); });
+    el('deobfInput').addEventListener('keydown',e=>{ if(e.ctrlKey && e.key==='Enter') el('btnDeobf').click(); });
 
-    // Small progressive enhancement: make projects clickable
-    document.querySelectorAll('.project').forEach((p,i)=>{p.addEventListener('click',(ev)=>{if(ev.target.tagName!=='BUTTON') openModal(i)})})
-
-    // Accessibility helpers
-    (function(){ document.querySelectorAll('a,button').forEach(i=>i.addEventListener('focus',()=>i.style.outline='2px solid rgba(179,0,0,0.25)')) })();
   </script>
 </body>
 </html>
