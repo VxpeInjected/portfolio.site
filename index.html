@@ -2,141 +2,87 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Lua Obfuscator / Deobfuscator</title>
 <style>
-:root{
-  --accent: #4169e1;
-  --bg: #111;
-  --card: #1c2841;
-  --text: #fff;
-  --glow: 0 0 15px var(--accent);
-}
-body{
-  margin:0;
-  background:var(--bg);
-  color:var(--text);
-  font-family:Arial, sans-serif;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:flex-start;
-  min-height:100vh;
-}
-nav{
-  width:100%;
-  background:#000;
-  padding:20px;
-  box-shadow:0 0 15px #000;
-  display:flex;
-  justify-content:center;
-  position:sticky;
-  top:0;
-  z-index:10;
-}
-nav button{
-  margin:0 10px;
-  padding:12px 25px;
-  font-size:18px;
-  border:none;
-  border-radius:10px;
-  background:var(--accent);
-  color:#000;
-  cursor:pointer;
-  transition:0.2s;
-  box-shadow:var(--glow);
-}
-nav button:hover{
-  transform:scale(1.05);
-}
-.page{
-  display:none;
-  width:90%;
-  max-width:1000px;
-  margin-top:30px;
-  padding:20px;
-  background:var(--card);
-  border-radius:20px;
-  box-shadow:0 0 25px #000;
-  animation:fadeIn 0.3s ease;
-}
-textarea{
-  width:100%;
-  height:250px;
-  border-radius:12px;
-  padding:15px;
-  background:#000;
-  color:var(--text);
-  border:2px solid var(--accent);
-  box-shadow:var(--glow);
-}
-button.action{
-  margin-top:15px;
-  width:100%;
-  padding:15px;
-  font-size:20px;
-  border:none;
-  border-radius:12px;
-  background:var(--accent);
-  color:#000;
-  cursor:pointer;
-  transition:0.2s;
-  box-shadow:var(--glow);
-}
-button.action:hover{ transform:scale(1.03); }
-#loader{
-  width:0%;
-  height:5px;
-  background:var(--accent);
-  box-shadow:var(--glow);
-  margin-top:10px;
-  transition:0.4s;
-}
-@keyframes fadeIn{ from{opacity:0;transform:translateY(10px);} to{opacity:1;transform:translateY(0);} }
+    body { font-family: Arial, sans-serif; background:#030b1a; color:white; margin:0; }
+    header { background:#007bff; padding:20px; text-align:center; font-size:30px; font-weight:900; box-shadow:0 0 25px #007bff; }
+
+    .tabs { display:flex; justify-content:center; background:#005fcc; padding:10px 0; box-shadow:0 0 20px #005fcc; }
+    .tab { padding:12px 25px; margin:0 10px; cursor:pointer; background:#007bff; border-radius:12px; font-weight:bold; transition:0.25s; box-shadow:0 0 15px #007bff; }
+    .tab:hover { transform:scale(1.07); filter:brightness(1.2); }
+    .tab.active { background:#3399ff; box-shadow:0 0 20px #3399ff inset; }
+
+    .page { display:none; padding:25px; animation:fade 0.3s ease; max-width:900px; margin:auto; }
+    @keyframes fade { from{opacity:0;} to{opacity:1;} }
+
+    textarea { width:100%; height:300px; background:#0a1a33; color:#7ab8ff; border:2px solid #007bff; border-radius:14px; padding:12px; resize:none; box-shadow:0 0 18px #007bff; }
+
+    button { background:#007bff; border:none; padding:16px 26px; font-size:17px; cursor:pointer; margin-top:14px; color:white; font-weight:bold; border-radius:14px; transition:0.25s; box-shadow:0 0 18px #007bff; }
+    button:hover { transform:scale(1.06); filter:brightness(1.25); }
+
+    .loader { width:0%; height:7px; background:#66b3ff; margin-top:12px; border-radius:6px; transition:0.4s; box-shadow:0 0 10px #66b3ff; }
 </style>
 </head>
 <body>
-<nav>
-  <button onclick="showPage('obf')">Obfuscator</button>
-  <button onclick="showPage('deobf')">Deobfuscator</button>
-</nav>
-<div id="obf" class="page">
-  <h2>Lua Obfuscator</h2>
-  <textarea id="obf_in" placeholder="Paste Lua code..."></textarea>
-  <button class="action" onclick="runObf()">Obfuscate</button>
-  <div id="loader"></div>
-  <textarea id="obf_out" placeholder="Output... (one-line)" readonly></textarea>
+<header>Lua Obfuscator / Deobfuscator</header>
+
+<div class="tabs">
+    <div class="tab active" onclick="showPage('obf', event)">Obfuscate</div>
+    <div class="tab" onclick="showPage('deobf', event)">Deobfuscate</div>
 </div>
+
+<div id="obf" class="page" style="display:block;">
+    <textarea id="inputObf" placeholder="Paste your Lua script here..."></textarea>
+    <button onclick="runObf()">Obfuscate</button>
+    <div id="load1" class="loader"></div>
+    <textarea id="outputObf" placeholder="Obfuscated output..."></textarea>
+</div>
+
 <div id="deobf" class="page">
-  <h2>Lua Deobfuscator</h2>
-  <textarea id="deobf_in" placeholder="Paste obfuscated Lua..."></textarea>
-  <button class="action" onclick="runDeobf()">Deobfuscate</button>
-  <textarea id="deobf_out" placeholder="Readable Lua..." readonly></textarea>
+    <textarea id="inputDeobf" placeholder="Paste obfuscated Lua..."></textarea>
+    <button onclick="runDeobf()">Deobfuscate</button>
+    <div id="load2" class="loader"></div>
+    <textarea id="outputDeobf" placeholder="Deobfuscated output..."></textarea>
 </div>
+
 <script>
-function showPage(id){
-  document.querySelectorAll('.page').forEach(p=>p.style.display='none');
-  document.getElementById(id).style.display='block';
+function showPage(id, e){
+    document.querySelectorAll('.page').forEach(p=>p.style.display='none');
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.getElementById(id).style.display='block';
+    e.target.classList.add('active');
 }
-showPage('obf');
-function encode(str){ return btoa(unescape(encodeURIComponent(str))); }
-function decode(str){ return decodeURIComponent(escape(atob(str))); }
+
+function b64e(str){ return btoa(unescape(encodeURIComponent(str))); }
+function b64d(str){ return decodeURIComponent(escape(atob(str))); }
+
 function runObf(){
-  const input = document.getElementById('obf_in').value;
-  const loader = document.getElementById('loader');
-  loader.style.width='0%';
-  setTimeout(()=>loader.style.width='100%',10);
-  setTimeout(()=>{
-    const encoded = encode(input);
-    const wrapper = "local b='"+encoded+"' local d=game:GetService('HttpService'):JSONDecode('[\\"\\"]') function _D(c)return(c:gsub('..',function(x)return string.char(tonumber(x,16))end))end loadstring(_D((function(s)local r='' for i=1,#s do r=r..string.format('%02X',s:byte(i)) end return r end)(b:reverse())))()";
-    document.getElementById('obf_out').value = wrapper.replace(/\s+/g,' ');
-  },500);
+    let code=document.getElementById("inputObf").value;
+    if(!code.trim()){ document.getElementById("outputObf").value=""; return; }
+
+    let bar=document.getElementById("load1"); bar.style.width="100%";
+    setTimeout(()=>{ bar.style.width="0%"; },600);
+
+    let encoded=b64e(code);
+
+    let output = "local b='"+encoded+"' local d=DecodeBase64 or function(s)local a='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'local t={}local n=1 for i=1,#s do local v=a:find(s:sub(i,i),1,true) if v then t[n]=v-1 n=n+1 end end local o={}local k=1 for i=1,#t,4 do local A=t[i]local B=t[i+1]local C=t[i+2]local D=t[i+3]o[k]=string.char(bit32.band(bit32.bor(bit32.lshift(A,2), bit32.rshift(B or 0,4)),255))k=k+1 if C then o[k]=string.char(bit32.band(bit32.bor(bit32.lshift(B,4), bit32.rshift(C,2)),255))k=k+1 end if D then o[k]=string.char(bit32.band(bit32.bor(bit32.lshift(C,6),D),255))k=k+1 end end return table.concat(o) end loadstring(d(b))()";
+
+    document.getElementById("outputObf").value = output;
 }
+
 function runDeobf(){
-  const encoded = document.getElementById('deobf_in').value.match(/b='(.-)'/);
-  if(!encoded){ document.getElementById('deobf_out').value='Invalid obfuscated code.'; return; }
-  const result = decode(encoded[1]);
-  document.getElementById('deobf_out').value = result;
+    let code=document.getElementById("inputDeobf").value;
+    let match = code.match(/b='([^']+)'/);
+    if(!match){ document.getElementById("outputDeobf").value="Failed: no Base64 found."; return; }
+
+    let bar=document.getElementById("load2"); bar.style.width="100%";
+    setTimeout(()=>{ bar.style.width="0%"; },600);
+
+    try{
+        document.getElementById("outputDeobf").value = b64d(match[1]);
+    }catch(e){
+        document.getElementById("outputDeobf").value="Decode error.";
+    }
 }
 </script>
 </body>
