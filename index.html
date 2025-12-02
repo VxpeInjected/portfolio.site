@@ -1,82 +1,247 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<title>Lua Obfuscator / Deobfuscator</title>
-<style>
-    body { font-family: Arial, sans-serif; background:#0d0d0d; color:white; margin:0; padding:0; }
-    header { background:#ff7a00; padding:18px; text-align:center; font-size:26px; font-weight:bold; box-shadow:0 0 20px #ff7a00; }
-    .tabs { display:flex; background:#ff8f26; box-shadow:0 0 10px #ff7a00; }
-    .tab { flex:1; padding:14px; text-align:center; cursor:pointer; background:#ff8f26; font-weight:bold; border-radius:8px 8px 0 0; transition:0.2s; }
-    .tab:hover { filter:brightness(1.15); }
-    .tab.active { background:#ff7a00; box-shadow:0 0 15px #ff7a00 inset; }
-    .page { display:none; padding:20px; animation:fade 0.25s ease; }
-    @keyframes fade { from{opacity:0;} to{opacity:1;} }
-    textarea { width:100%; height:260px; background:#111; color:#ffa64d; border:2px solid #ff7a00; padding:10px; resize:none; border-radius:10px; box-shadow:0 0 12px #ff7a00; }
-    button { background:#ff7a00; border:none; padding:14px 22px; font-size:16px; cursor:pointer; margin-top:12px; color:white; font-weight:bold; border-radius:10px; transition:0.2s; box-shadow:0 0 15px #ff7a00; }
-    button:hover { transform:scale(1.03); filter:brightness(1.2); }
-    .loader { width:0; height:6px; background:#ff7a00; margin-top:10px; transition:0.4s; border-radius:5px; }
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Lua Jumbling Obfuscator — Orange Edition</title>
+  <meta name="color-scheme" content="dark">
+  <style>
+    :root{--bg:#0b0b0c;--panel:#121212;--accent:#ff7a00;--muted:#bfbfbf;--glass:rgba(255,122,0,0.08)}
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:Inter,Segoe UI,Roboto,system-ui,Arial;background:linear-gradient(180deg,#060607 0%, #0f0f10 100%);color:#fff}
+    .wrap{max-width:1100px;margin:36px auto;padding:20px;border-radius:14px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));box-shadow:0 10px 40px rgba(0,0,0,0.6), 0 0 40px rgba(255,122,0,0.06);overflow:hidden}
+    header{display:flex;align-items:center;gap:16px}
+    .logo{width:64px;height:64px;border-radius:12px;background:linear-gradient(135deg,var(--accent),#ff9d42);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(255,122,0,0.18), inset 0 -6px 12px rgba(0,0,0,0.12)}
+    .logo b{font-size:20px}
+    h1{margin:0;font-size:20px}
+    .subtitle{color:var(--muted);font-size:13px}
+    .tabs{display:flex;margin-top:18px;gap:8px}
+    .tab{padding:8px 14px;border-radius:10px;background:transparent;border:1px solid rgba(255,255,255,0.03);color:var(--muted);cursor:pointer}
+    .tab.active{background:linear-gradient(90deg, rgba(255,122,0,0.15), rgba(255,173,90,0.06));border-color:rgba(255,122,0,0.22);color:#fff;box-shadow:0 6px 18px rgba(255,122,0,0.08)}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px}
+    .panel{background:var(--panel);padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,0.02);box-shadow:0 8px 30px rgba(0,0,0,0.6)}
+    label.small{display:inline-flex;gap:8px;align-items:center;color:var(--muted);font-size:13px}
+    textarea{width:100%;height:420px;background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent);color:#fff;border:1px solid rgba(255,255,255,0.03);padding:12px;border-radius:10px;font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, 'Courier New', monospace;font-size:13px;resize:vertical;line-height:1.35}
+    .controls{display:flex;align-items:center;gap:10px;margin-top:10px}
+    .options{display:flex;gap:8px;flex-wrap:wrap}
+    button.primary{background:linear-gradient(90deg,var(--accent),#ff9d42);border:0;padding:10px 14px;border-radius:10px;color:#0b0b0b;font-weight:700;cursor:pointer;box-shadow:0 10px 30px rgba(255,122,0,0.12)}
+    button.ghost{background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted);padding:8px 10px;border-radius:8px;cursor:pointer}
+    .loaderWrap{height:8px;background:rgba(255,255,255,0.02);border-radius:8px;overflow:hidden;margin-top:10px}
+    .loader{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),#ffb077);transition:width 400ms ease}
+    footer{display:flex;justify-content:space-between;align-items:center;margin-top:14px;color:var(--muted);font-size:13px}
+    @media(max-width:980px){.grid{grid-template-columns:1fr}.logo{display:none}.subtitle{font-size:12px}}
+    .hint{background:var(--glass);padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.02);color:var(--muted);font-size:13px}
+  </style>
 </head>
 <body>
-<header>Lua Obfuscator / Deobfuscator</header>
-<div class="tabs">
-    <div class="tab active" onclick="showPage('obf')">Obfuscate</div>
-    <div class="tab" onclick="showPage('deobf')">Deobfuscate</div>
-</div>
+  <div class="wrap">
+    <header>
+      <div class="logo"><b>LO</b></div>
+      <div>
+        <h1>Lua Jumbling Obfuscator</h1>
+        <div class="subtitle">One-line Roblox-friendly obfuscation — reversible by the Deobfuscator tab.</div>
+      </div>
+      <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+        <div class="hint">Theme: Orange • Runtime: Browser-only</div>
+      </div>
+    </header>
 
-<div id="obf" class="page" style="display:block;">
-    <textarea id="inputObf" placeholder="Paste Lua code..."></textarea>
-    <button onclick="runObfuscate()">Obfuscate</button>
-    <div id="load1" class="loader"></div>
-    <textarea id="outputObf" placeholder="Output..."></textarea>
-</div>
+    <div class="tabs" role="tablist" aria-label="tabs">
+      <button id="tabObf" class="tab active" role="tab">Obfuscate</button>
+      <button id="tabDeobf" class="tab" role="tab">Deobfuscate</button>
+    </div>
 
-<div id="deobf" class="page">
-    <textarea id="inputDeobf" placeholder="Paste obfuscated Lua..."></textarea>
-    <button onclick="runDeobfuscate()">Deobfuscate</button>
-    <div id="load2" class="loader"></div>
-    <textarea id="outputDeobf" placeholder="Output...	extarea>
-</div>
+    <div class="grid">
+      <div class="panel" id="leftPanel">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div style="color:var(--muted);font-size:13px">Input — paste Lua source</div>
+            <div style="height:8px"></div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <label class="small"><input type="checkbox" id="optHeader" checked /> Header mapping</label>
+            <label class="small"><input type="checkbox" id="optMinify" /> Minify (remove comments/extra whitespace)</label>
+          </div>
+        </div>
 
-<script>
-function showPage(id){
-    document.querySelectorAll('.page').forEach(p=>p.style.display='none');
-    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-    document.getElementById(id).style.display='block';
-    event.target.classList.add('active');
-}
+        <textarea id="inputCode" placeholder="-- paste your lua code here...">-- Example: print 10 lines
+for i=1,10 do
+  print('line '..i)
+end
+</textarea>
 
-function base64Encode(str){ return btoa(unescape(encodeURIComponent(str))); }
-function base64Decode(str){ return decodeURIComponent(escape(atob(str))); }
+        <div class="controls">
+          <div class="options">
+            <button id="btnObf" class="primary">Obfuscate →</button>
+            <button id="btnClearIn" class="ghost">Clear</button>
+          </div>
+          <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+            <div class="loaderWrap" style="width:240px"><div id="loader1" class="loader"></div></div>
+            <div class="hint" style="padding:8px 10px">Output is a single-line Lua snippet ready for Roblox.</div>
+          </div>
+        </div>
+      </div>
 
-function runObfuscate(){
-    const bar=document.getElementById('load1'); bar.style.width='100%';
-    setTimeout(()=>{ bar.style.width='0'; },500);
+      <div class="panel" id="rightPanel">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div style="color:var(--muted);font-size:13px">Output — obfuscated one-line</div>
+            <div style="height:8px"></div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button id="btnCopyOut" class="ghost">Copy</button>
+            <button id="btnDownload" class="ghost">Download</button>
+          </div>
+        </div>
 
-    let code=document.getElementById('inputObf').value;
-    if(!code.trim()){ document.getElementById('outputObf').value=''; return; }
+        <textarea id="outputCode" readonly placeholder="Obfuscated output will appear here..."></textarea>
 
-    let b64=base64Encode(code);
+        <footer>
+          <div>Mapping header: <span id="mapStatus">on</span></div>
+          <div>Made for Roblox • one-line loader</div>
+        </footer>
+      </div>
+    </div>
 
-    let oneLine="loadstring((function(b)local bit=bit32 local c='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/' local d={}for i=1,#c do d[c:sub(i,i)]=i-1 end local t={}local n=1 for i=1,#b do local v=d[b:sub(i,i)]if v then t[n]=v n=n+1 end end local o={}local k=1 for i=1,#t,4 do local a=t[i]local b2=t[i+1]local c2=t[i+2]local d2=t[i+3]o[k]=string.char(bit.band(bit.bor(bit.lshift(a,2), bit.rshift(b2 or 0,4)),255))k=k+1 if c2 then o[k]=string.char(bit.band(bit.bor(bit.lshift(b2,4), bit.rshift(c2,2)),255))k=k+1 end if d2 then o[k]=string.char(bit.band(bit.bor(bit.lshift(c2,6), d2),255))k=k+1 end end return table.concat(o) end)(" + "'" + b64 + "'))()";
+    <div style="margin-top:14px" class="panel">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div>
+          <div style="color:var(--muted);font-size:13px">Deobfuscator (paste obfuscated single-line)</div>
+          <textarea id="deobfInput" placeholder="Paste obfuscated line here..."></textarea>
+          <div style="display:flex;gap:8px;align-items:center;margin-top:8px">
+            <button id="btnDeobf" class="primary">Deobfuscate</button>
+            <button id="btnClearDe" class="ghost">Clear</button>
+            <div class="loaderWrap" style="width:160px"><div id="loader2" class="loader"></div></div>
+          </div>
+        </div>
+        <div>
+          <div style="color:var(--muted);font-size:13px">Deobfuscated output</div>
+          <textarea id="deobfOutput" readonly placeholder="Deobfuscated code will appear here..."></textarea>
+        </div>
+      </div>
 
-    document.getElementById('outputObf').value = oneLine;
-}
+      <div style="margin-top:12px;color:var(--muted);font-size:13px">Notes: This tool embeds the original source as a Base64 string inside a small one-line Lua loader that uses <code>bit32</code> and <code>string.char</code>. The loader is single-line and balanced to be accepted by Roblox's Lua parser.</div>
+    </div>
 
-function runDeobfuscate(){
-    const bar=document.getElementById('load2'); bar.style.width='100%';
-    setTimeout(()=>{ bar.style.width='0'; },500);
+  </div>
 
-    let code=document.getElementById('inputDeobf').value;
-    let match = code.match(/'([^']+)'/);
-    if(!match){ document.getElementById('outputDeobf').value='Failed: No Base64 found.'; return; }
+  <script>
+    // Utilities
+    const $ = id => document.getElementById(id);
+    const setLoader = (el, pct) => { el.style.width = pct + '%'; };
 
-    try{
-        let decoded = base64Decode(match[1]);
-        document.getElementById('outputDeobf').value = decoded;
-    }catch(e){ document.getElementById('outputDeobf').value='Decode failed.'; }
-}
-</script>
+    // Tab behavior
+    $('tabObf').addEventListener('click', ()=>{ $('tabObf').classList.add('active'); $('tabDeobf').classList.remove('active'); document.getElementById('leftPanel').scrollIntoView({behavior:'smooth'}); });
+    $('tabDeobf').addEventListener('click', ()=>{ $('tabDeobf').classList.add('active'); $('tabObf').classList.remove('active'); document.getElementById('deobfInput').scrollIntoView({behavior:'smooth'}); });
+
+    // Base64 helpers (utf8-safe)
+    function b64encode(str){ try { return btoa(unescape(encodeURIComponent(str))); } catch(e) { return btoa(str); } }
+    function b64decode(str){ try { return decodeURIComponent(escape(atob(str))); } catch(e) { return atob(str); } }
+
+    // Basic minifier (optional)
+    function simpleMinify(code){
+      code = code.replace(/--\[\[[\s\S]*?\]\]/g, '');
+      code = code.replace(/--[^\n]*\n/g, '\n');
+      code = code.replace(/\n\s+/g, '\n').replace(/\n{2,}/g,'\n');
+      return code.trim();
+    }
+
+    // Build a single-line, balanced Lua loader that decodes a Base64 string using bit32 and string.char.
+    function buildLoader(base64Str){
+      const luaParts = [];
+      luaParts.push("(function(b) ");
+      luaParts.push("local bit=bit32; local charset='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'; local idx={};");
+      luaParts.push("for i=1,#charset do idx[charset:sub(i,i)]=i-1 end;");
+      luaParts.push("local vals={}; local vi=1;");
+      luaParts.push("for i=1,#b do local ch=b:sub(i,i); local v=idx[ch]; if v~=nil then vals[vi]=v; vi=vi+1; end end;");
+      luaParts.push("local out={}; local oi=1;");
+      luaParts.push("for i=1,#vals,4 do local a=vals[i]; local b2=vals[i+1]; local c2=vals[i+2]; local d2=vals[i+3];");
+      luaParts.push("out[oi]=string.char( bit.band( bit.bor( bit.lshift(a,2), bit.rshift(b2 or 0,4) ), 255) ); oi=oi+1;");
+      luaParts.push("if c2 then out[oi]=string.char( bit.band( bit.bor( bit.lshift(b2,4), bit.rshift(c2,2) ), 255) ); oi=oi+1; end;");
+      luaParts.push("if d2 then out[oi]=string.char( bit.band( bit.bor( bit.lshift(c2,6), d2 ), 255) ); oi=oi+1; end;");
+      luaParts.push("end; return table.concat(out); end)");
+      const payload = "('" + base64Str + "')";
+      const oneLine = "loadstring(" + luaParts.join('') + payload + ")()";
+      return oneLine.replace(/\n/g,' ');
+    }
+
+    // Obfuscate button
+    $('btnObf').addEventListener('click', ()=>{
+      const loaderEl = $('loader1'); setLoader(loaderEl, 10);
+      setTimeout(()=> setLoader(loaderEl, 42), 90);
+      setTimeout(()=> setLoader(loaderEl, 76), 180);
+
+      setTimeout(()=>{
+        let src = $('inputCode').value || '';
+        if($('optMinify').checked) src = simpleMinify(src);
+
+        const b64 = b64encode(src);
+        if(!/^[A-Za-z0-9+\/=]+$/.test(b64)){
+          alert('Base64 contains unsafe characters — aborting.');
+          $('outputCode').value = '';
+          setLoader(loaderEl,0);
+          return;
+        }
+
+        const out = buildLoader(b64);
+        if($('optHeader').checked){
+          const meta = { ts: new Date().toISOString(), len: src.length };
+          const header = '--[[OBF_HDR:' + b64encode(JSON.stringify(meta)) + ']] ';
+          $('outputCode').value = header + out;
+          $('mapStatus').textContent = 'on';
+        } else {
+          $('outputCode').value = out;
+          $('mapStatus').textContent = 'off';
+        }
+
+        setLoader(loaderEl,100);
+        setTimeout(()=> setLoader(loaderEl,0),300);
+      },260);
+    });
+
+    // Copy & Download
+    $('btnCopyOut').addEventListener('click', ()=>{ $('outputCode').select(); document.execCommand('copy'); });
+    $('btnDownload').addEventListener('click', ()=>{
+      const blob = new Blob([$('outputCode').value],{type:'text/plain'});
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download='obfuscated.lua'; a.click(); URL.revokeObjectURL(a.href);
+    });
+
+    // Clear
+    $('btnClearIn').addEventListener('click', ()=>{ $('inputCode').value=''; });
+    $('btnClearDe').addEventListener('click', ()=>{ $('deobfInput').value=''; $('deobfOutput').value=''; });
+
+    // Deobfuscate button
+    $('btnDeobf').addEventListener('click', ()=>{
+      const loaderEl = $('loader2'); setLoader(loaderEl,12);
+      setTimeout(()=> setLoader(loaderEl,54), 140);
+
+      setTimeout(()=>{
+        const text = $('deobfInput').value || '';
+        let metaMatch = text.match(/--\[\[OBF_HDR:([A-Za-z0-9+/=]+)\]\]/);
+        let b64Match = null;
+        if(metaMatch){ b64Match = metaMatch[1]; }
+        else {
+          const m = text.match(/([A-Za-z0-9+\/]{20,}=*?)/g);
+          if(m && m.length) b64Match = m[0];
+        }
+
+        if(!b64Match){ $('deobfOutput').value = 'Failed: no base64 payload found.'; setLoader(loaderEl,0); return; }
+
+        try{
+          const decoded = b64decode(b64Match);
+          $('deobfOutput').value = decoded;
+        }catch(e){ $('deobfOutput').value = 'Decode error: '+e.message; }
+        setLoader(loaderEl,100);
+        setTimeout(()=> setLoader(loaderEl,0),300);
+      },320);
+    });
+
+    // Shortcuts
+    $('inputCode').addEventListener('keydown', e=>{ if(e.ctrlKey && e.key==='Enter') $('btnObf').click(); });
+    $('deobfInput').addEventListener('keydown', e=>{ if(e.ctrlKey && e.key==='Enter') $('btnDeobf').click(); });
+
+    // Kick UI
+    setTimeout(()=>{ document.body.style.opacity=1; },120);
+  </script>
 </body>
 </html>
