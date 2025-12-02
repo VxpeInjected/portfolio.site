@@ -3,67 +3,96 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Code Toolkit</title>
+<title>Roblox Lua Toolkit</title>
 <style>
-    body { font-family: Arial, sans-serif; background: #1e1e1e; color: #f0f0f0; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; }
-    h1 { margin: 20px 0; }
-    textarea { width: 90%; max-width: 800px; height: 200px; margin: 10px 0; background: #2e2e2e; color: #f0f0f0; border: 1px solid #555; padding: 10px; font-family: monospace; font-size: 14px; }
-    button { margin: 5px; padding: 10px 20px; border: none; border-radius: 5px; background: #4CAF50; color: white; cursor: pointer; }
-    button:hover { background: #45a049; }
-    #output { height: 200px; }
+body { font-family: Arial, sans-serif; background: #1e1e1e; color: #f0f0f0; text-align: center; }
+textarea { width: 90%; height: 200px; margin: 10px 0; background: #2e2e2e; color: #f0f0f0; border: 1px solid #555; padding: 10px; font-family: monospace; }
+button { margin: 5px; padding: 10px 20px; border: none; border-radius: 5px; background: #4CAF50; color: white; cursor: pointer; }
+button:hover { background: #45a049; }
 </style>
 </head>
 <body>
-
-<h1>Code Toolkit</h1>
-
-<textarea id="input" placeholder="Paste your code here..."></textarea>
-
+<h1>Roblox Lua Toolkit</h1>
+<textarea id="input" placeholder="Paste your Lua code here..."></textarea>
 <div>
-    <button onclick="obfuscate()">Obfuscate</button>
-    <button onclick="deobfuscate()">Deobfuscate</button>
-    <button onclick="prettify()">Prettify</button>
-    <button onclick="allAtOnce()">ALLAT</button>
+<button onclick="deobfuscate()">Deobfuscate</button>
+<button onclick="obfuscate()">Obfuscate</button>
+<button onclick="prettify()">Prettify</button>
+<button onclick="allAtOnce()">ALLAT</button>
 </div>
-
 <textarea id="output" placeholder="Output will appear here..." readonly></textarea>
 
+<script src="https://unpkg.com/luaparse@0.3.1/dist/luaparse.js"></script>
 <script>
+function prettifyLua(code) {
+    try {
+        // Use luaparse to parse Lua AST
+        const ast = luaparse.parse(code);
+        // Simple formatter: add indentation (you could use a proper Lua formatter lib)
+        let indent = 0;
+        function walk(node) {
+            let out = '';
+            if (!node) return '';
+            switch(node.type) {
+                case 'Chunk':
+                    node.body.forEach(n => out += walk(n));
+                    break;
+                case 'AssignmentStatement':
+                    out += ' '.repeat(indent*4) + node.variables.map(v=>v.name).join(', ') + ' = ' + node.init.map(walk).join(', ') + '\n';
+                    break;
+                case 'CallStatement':
+                    out += ' '.repeat(indent*4) + walk(node.expression) + '\n';
+                    break;
+                case 'CallExpression':
+                    return walk(node.base) + '(' + node.arguments.map(walk).join(', ') + ')';
+                case 'NumericLiteral':
+                case 'StringLiteral':
+                    return node.raw;
+                case 'Identifier':
+                    return node.name;
+                case 'ReturnStatement':
+                    return ' '.repeat(indent*4) + 'return ' + node.arguments.map(walk).join(', ') + '\n';
+                case 'LocalStatement':
+                    return ' '.repeat(indent*4) + 'local ' + node.variables.map(v=>v.name).join(', ') + (node.init.length ? ' = ' + node.init.map(walk).join(', ') : '') + '\n';
+                default:
+                    return ''; // handle more AST nodes as needed
+            }
+            return out;
+        }
+        return walk(ast);
+    } catch(e) {
+        return "Failed to prettify Lua code: " + e;
+    }
+}
+
 function obfuscate() {
     let code = document.getElementById('input').value;
-    // Simple JS obfuscation: reverse + base64
-    let reversed = code.split('').reverse().join('');
-    let encoded = btoa(reversed);
-    document.getElementById('output').value = encoded;
+    // Placeholder: real Roblox obfuscation requires a proper Lua obfuscator library
+    document.getElementById('output').value = "-- OBFUSCATED\n" + code.split('').map(c=>`\\x${c.charCodeAt(0).toString(16)}`).join('');
 }
 
 function deobfuscate() {
     let code = document.getElementById('input').value;
+    // Placeholder: decode from obfuscation format used above
     try {
-        let decoded = atob(code);
-        let reversed = decoded.split('').reverse().join('');
-        document.getElementById('output').value = reversed;
+        let decoded = code.replace(/\\x([0-9a-f]{2})/g, (_, hex) => String.fromCharCode(parseInt(hex,16)));
+        document.getElementById('output').value = decoded;
     } catch(e) {
-        document.getElementById('output').value = "Invalid input for deobfuscation";
+        document.getElementById('output').value = "Deobfuscation failed";
     }
 }
 
 function prettify() {
     let code = document.getElementById('input').value;
-    try {
-        // Attempt to auto-indent JS code
-        let formatted = code.replace(/;/g, ';\n').replace(/{/g, '{\n').replace(/}/g, '\n}\n');
-        document.getElementById('output').value = formatted;
-    } catch(e) {
-        document.getElementById('output').value = "Could not prettify code";
-    }
+    document.getElementById('output').value = prettifyLua(code);
 }
 
 function allAtOnce() {
-    obfuscate();
-    // Could chain other operations if needed
+    let code = document.getElementById('input').value;
+    code = prettifyLua(code);
+    code = "-- OBFUSCATED\n" + code.split('').map(c=>`\\x${c.charCodeAt(0).toString(16)}`).join('');
+    document.getElementById('output').value = code;
 }
 </script>
-
 </body>
 </html>
