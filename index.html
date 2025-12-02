@@ -1,406 +1,108 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Lua Jumbling Obfuscator / Deobfuscator</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lua Obfuscator</title>
   <style>
-    :root{--bg:#0f1724;--panel:#0b1220;--muted:#9aa4b2;--accent:#7c3aed}
-    html,body{height:100%;margin:0;font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,"Helvetica Neue",Arial}
-    body{background:linear-gradient(180deg,#071023 0%, #071428 100%);color:#e6eef6;display:flex;align-items:center;justify-content:center;padding:28px}
-    .card{width:100%;max-width:1100px;background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);border-radius:12px;padding:18px;box-shadow:0 6px 30px rgba(2,6,23,.6)}
-    header{display:flex;gap:12px;align-items:center;margin-bottom:12px}
-    h1{font-size:18px;margin:0}
-    .tabs{margin-left:auto;display:flex;gap:8px}
-    .tab{padding:8px 12px;border-radius:8px;background:transparent;border:1px solid transparent;color:var(--muted);cursor:pointer}
-    .tab.active{background:linear-gradient(90deg,rgba(124,58,237,.14),rgba(59,130,246,.05));border-color:rgba(124,58,237,.18);color:#e9e7ff}
-    .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    textarea{width:100%;height:420px;background:transparent;border:1px solid rgba(255,255,255,0.04);padding:12px;border-radius:8px;color:inherit;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;resize:vertical}
-    .controls{display:flex;gap:8px;align-items:center;margin-top:8px}
-    button{background:var(--accent);border:0;color:white;padding:8px 12px;border-radius:8px;cursor:pointer}
-    .muted{color:var(--muted);font-size:13px}
-    .options{display:flex;gap:10px;flex-wrap:wrap}
-    label{display:inline-flex;gap:8px;align-items:center}
-    .small{font-size:12px;padding:6px 8px;border-radius:6px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.03)}
-    .footer{display:flex;justify-content:space-between;align-items:center;margin-top:12px}
-    .copy{background:transparent;border:1px solid rgba(255,255,255,0.04);padding:8px 10px;border-radius:8px;color:var(--muted);cursor:pointer}
-    .help{font-size:12px;color:var(--muted)}
-    .hint{background:rgba(255,255,255,0.02);padding:8px;border-radius:8px;border:1px dashed rgba(255,255,255,0.02);font-size:13px}
-    @media(max-width:900px){.grid{grid-template-columns:1fr;}.card{padding:12px}}
+    body { background:#0f0f0f; color:#fff; font-family:Arial; margin:0; padding:0; }
+    .tabs { display:flex; background:#1a1a1a; }
+    .tab { padding:15px 25px; cursor:pointer; border-right:1px solid #333; }
+    .tab.active { background:#333; }
+    .page { display:none; padding:20px; }
+    .page.active { display:block; }
+    textarea { width:100%; height:300px; background:#111; color:#0f0; border:1px solid #333; padding:10px; font-family:monospace; }
+    button { padding:10px 15px; background:#0f0; border:none; cursor:pointer; font-weight:bold; color:#000; margin-top:10px; }
+    #loader { width:0%; height:8px; background:#0f0; margin-top:10px; transition:width .3s; }
   </style>
 </head>
 <body>
-  <div class="card">
-    <header>
-      <h1>Lua Jumbling Obfuscator — single-file (index.html)</h1>
-      <div class="tabs">
-        <button id="tab-obf" class="tab active">Obfuscate</button>
-        <button id="tab-deobf" class="tab">Deobfuscate</button>
-      </div>
-    </header>
-
-    <div id="obfPage">
-      <div class="grid">
-        <div>
-          <div class="muted">Paste Lua source here</div>
-          <textarea id="inputCode" placeholder="-- paste lua code...">-- Example: simple function
-local function greet(name)
-  print("Hello, "..name.."!")
-end
-
-greet("world")
-</textarea>
-
-          <div class="controls">
-            <div class="options">
-              <label class="small"><input type="checkbox" id="optStrings" checked /> Obfuscate strings</label>
-              <label class="small"><input type="checkbox" id="optJunk" checked /> Insert junk no-ops</label>
-              <label class="small"><input type="checkbox" id="optShort" /> Short names (a,b,c..)</label>
-              <label class="small"><input type="checkbox" id="optHeader" checked /> Embed map header (reversible)</label>
-            </div>
-            <div style="margin-left:auto;display:flex;gap:8px">
-              <button id="btnObf">Obfuscate</button>
-              <button id="btnClear" class="small">Clear output</button>
-            </div>
-          </div>
-        </div>
-
-        <div>
-          <div class="muted">Obfuscated output</div>
-          <textarea id="outputCode" placeholder="obfuscated output" readonly></textarea>
-
-          <div class="footer">
-            <div style="display:flex;gap:8px">
-              <button id="btnCopy" class="copy">Copy</button>
-              <button id="btnDownload" class="copy">Download</button>
-            </div>
-            <div class="help">Header mapping allows accurate deobfuscation.</div>
-          </div>
-        </div>
-      </div>
-
-      <div style="margin-top:12px" class="hint">How it works: this tool renames identifiers (excluding Lua keywords & builtins) to random or short names, optionally encodes strings as <code>string.char(...)</code>, inserts harmless junk locals, and stores a reversible mapping in a top comment when header is enabled. Use the Deobfuscate tab to reverse.</div>
-    </div>
-
-    <div id="deobfPage" style="display:none;margin-top:12px">
-      <div class="muted">Paste obfuscated code (with header) or raw — the tool will try to reverse it</div>
-      <textarea id="deobfInput" style="height:260px" placeholder="paste obfuscated code..."></textarea>
-      <div style="display:flex;gap:8px;margin-top:8px">
-        <button id="btnDeobf">Deobfuscate</button>
-        <button id="btnDeobfCopy" class="copy">Copy</button>
-        <button id="btnDeobfClear" class="small">Clear</button>
-      </div>
-      <div style="margin-top:8px">
-        <div class="muted">Deobfuscated output</div>
-        <textarea id="deobfOutput" style="height:220px" readonly placeholder="deobfuscated output..."></textarea>
-      </div>
-      <div style="margin-top:8px" class="hint">If there is no header mapping this tool will still attempt to decode <code>string.char(...)</code> patterns back into literal strings and will perform a best-effort identifier renaming undo (may be lossy).</div>
-    </div>
+  <div class="tabs">
+    <div class="tab active" data-page="obf">Obfuscate</div>
+    <div class="tab" data-page="deobf">Deobfuscate</div>
   </div>
 
-  <script>
-    // --- small util
-    const el = id => document.getElementById(id);
+  <div id="loader"></div>
 
-    // tabs
-    el('tab-obf').onclick = () => { el('obfPage').style.display=''; el('deobfPage').style.display='none'; el('tab-obf').classList.add('active'); el('tab-deobf').classList.remove('active'); }
-    el('tab-deobf').onclick = () => { el('obfPage').style.display='none'; el('deobfPage').style.display=''; el('tab-obf').classList.remove('active'); el('tab-deobf').classList.add('active'); }
+  <div id="obf" class="page active">
+    <h2>Lua Obfuscator</h2>
+    <textarea id="inputObf" placeholder="Paste Lua code here..."></textarea>
+    <button id="btnObf">Obfuscate</button>
+    <textarea id="outputObf" placeholder="Obfuscated output..." readonly></textarea>
+  </div>
 
-    // reserved keywords & common globals to avoid renaming
-    const LUA_KEYWORDS = new Set(["and","break","do","else","elseif","end","false","for","function","goto","if","in","local","nil","not","or","repeat","return","then","true","until","while"]);
-    const LUA_BUILTINS = new Set(["print","pairs","ipairs","next","type","assert","error","pcall","xpcall","tonumber","tostring","math","string","table","os","coroutine","require","package","setmetatable","getmetatable","rawget","rawset","rawlen","select","unpack","utf8"]);
+  <div id="deobf" class="page">
+    <h2>Lua Deobfuscator</h2>
+    <textarea id="inputDeobf" placeholder="Paste obfuscated code..."></textarea>
+    <button id="btnDeobf">Deobfuscate</button>
+    <textarea id="outputDeobf" placeholder="Deobfuscated output..." readonly></textarea>
+  </div>
 
-    function randName(short=false,i=0){
-      if(short){
-        // simple short names: a,b,... z, aa, ab...
-        const alphabet = 'abcdefghijklmnopqrstuvwxyz';
-        let n = i;
-        let out = '';
-        do { out = alphabet[n % 26] + out; n = Math.floor(n/26)-1; } while(n>=0);
-        return '_' + out;
-      }
-      // random-ish but deterministic enough
-      const r = Math.floor(Math.random()*1e9).toString(36);
-      return '_Gx' + r;
-    }
+<script>
+// Page switching
+const tabs = document.querySelectorAll('.tab');
+const pages = document.querySelectorAll('.page');
 
-    // scanner-based obfuscation: avoids replacing inside strings/comments
-    function obfuscateLua(src, options={strings:true,junk:true,short:false,header:true}){
-      let i=0,n=src.length;
-      const out=[];
-      const idMap = {};
-      const ids = [];
-      // first pass: collect identifiers (outside literals/comments)
-      let mode='normal'; // normal, sq, dq, bracket (with level), slcomment, mlcomment
-      let bracketLevel=0;
-      while(i<n){
-        const ch = src[i];
-        // handle entry into modes
-        if(mode==='normal'){
-          if(ch==='\'') { mode='sq'; i++; continue; }
-          if(ch==='\"') { mode='dq'; i++; continue; }
-          if(ch==='-' && src[i+1]=='-'){
-            if(src[i+2]=='[' && src[i+3]=='['){ mode='mlcomment'; i+=4; continue; }
-            mode='slcomment'; i+=2; continue;
-          }
-          if(ch==='[' && src[i+1]=='['){ mode='bracket'; bracketLevel=2; i+=2; continue; }
-          // identifier
-          if(/[A-Za-z_]/.test(ch)){
-            let j=i+1; while(j<n && /[A-Za-z0-9_]/.test(src[j])) j++;
-            const tok = src.slice(i,j);
-            if(!LUA_KEYWORDS.has(tok) && !LUA_BUILTINS.has(tok) && tok.length>0){
-              if(!idMap.hasOwnProperty(tok)){
-                idMap[tok]=null; ids.push(tok);
-              }
-            }
-            i=j; continue;
-          }
-          i++; continue;
-        }
-        // inside single-line comment
-        if(mode==='slcomment'){
-          if(ch==='\n'){ mode='normal'; }
-          i++; continue;
-        }
-        if(mode==='mlcomment'){
-          if(ch===']' && src[i+1]==']'){ mode='normal'; i+=2; continue; }
-          i++; continue;
-        }
-        if(mode==='sq'){
-          if(ch==='\\') { i+=2; continue; }
-          if(ch==='\'') { mode='normal'; i++; continue; }
-          i++; continue;
-        }
-        if(mode==='dq'){
-          if(ch==='\\') { i+=2; continue; }
-          if(ch==='\"') { mode='normal'; i++; continue; }
-          i++; continue;
-        }
-        if(mode==='bracket'){
-          if(ch===']' && src[i+1]==']'){ mode='normal'; i+=2; continue; }
-          i++; continue;
-        }
-      }
+tabs.forEach(t => {
+  t.onclick = () => {
+    tabs.forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    pages.forEach(p => p.classList.remove('active'));
+    document.getElementById(t.dataset.page).classList.add('active');
+  };
+});
 
-      // create mapping
-      let idx = 0;
-      for(const id of ids){
-        idMap[id] = randName(options.short, idx++);
-      }
+// Loader bar function
+function runLoader(callback){
+  const bar = document.getElementById('loader');
+  bar.style.width = '0%';
+  let w = 0;
+  const interval = setInterval(()=>{
+    w += 10;
+    bar.style.width = w + '%';
+    if(w >= 100){ clearInterval(interval); setTimeout(()=>{ bar.style.width = '0%' },300); callback(); }
+  }, 60);
+}
 
-      // second pass: produce obfuscated, replacing identifiers only in normal mode
-      i=0; mode='normal'; bracketLevel=0; let junkCounter=0;
-      while(i<n){
-        const ch = src[i];
-        if(mode==='normal'){
-          if(ch==='\'') { out.push(ch); mode='sq'; i++; continue; }
-          if(ch==='\"') { out.push(ch); mode='dq'; i++; continue; }
-          if(ch==='-' && src[i+1]=='-'){
-            if(src[i+2]=='[' && src[i+3]=='['){ out.push('--[['); mode='mlcomment'; i+=4; continue; }
-            out.push('--'); mode='slcomment'; i+=2; continue;
-          }
-          if(ch==='[' && src[i+1]=='['){ out.push('[['); mode='bracket'; i+=2; continue; }
-          if(/[A-Za-z_]/.test(ch)){
-            let j=i+1; while(j<n && /[A-Za-z0-9_]/.test(src[j])) j++;
-            const tok = src.slice(i,j);
-            if(idMap.hasOwnProperty(tok)){
-              out.push(idMap[tok]);
-            } else {
-              out.push(tok);
-            }
-            i=j; continue;
-          }
-          // normal char
-          out.push(ch); i++; continue;
-        }
-        if(mode==='slcomment'){
-          if(ch==='\n'){ out.push(ch); mode='normal'; }
-          else out.push(ch);
-          i++; continue;
-        }
-        if(mode==='mlcomment'){
-          if(ch===']' && src[i+1]==']'){ out.push(']]'); mode='normal'; i+=2; continue; }
-          out.push(ch); i++; continue;
-        }
-        if(mode==='sq'){
-          // capture string and optionally obfuscate as string.char(...) for reversible encode
-          let j=i; let s='';
-          while(j<n){
-            const c=src[j]; if(c==='\\'){ s+=c+src[j+1]; j+=2; continue; }
-            if(c=='\'') { j++; break; }
-            s+=c; j++; }
-          // s contains string body (not including quotes)
-          if(options.strings){
-            // convert to string.char(...) expression
-            const codes = [];
-            for(let k=0;k<s.length;k++){ codes.push(s.charCodeAt(k)); }
-            out.push("'" + "" + "'" );
-            // instead of quoting, push a string.char(...) that concatenates (to keep as expression)
-            // we'll place a marker in comment to indicate this spot was a string char expression: /*STR*/string.char(...)
-            // but we need valid lua: use (string.char(x,y,...))
-            out.pop();
-            out.push('(' + 'string.char(' + codes.join(',') + '))');
-          } else {
-            out.push("'" + s + "'");
-          }
-          i=j; mode='normal'; continue;
-        }
-        if(mode==='dq'){
-          let j=i; let s='';
-          while(j<n){
-            const c=src[j]; if(c==='\\'){ s+=c+src[j+1]; j+=2; continue; }
-            if(c=='\"') { j++; break; }
-            s+=c; j++; }
-          if(options.strings){
-            const codes = [];
-            for(let k=0;k<s.length;k++){ codes.push(s.charCodeAt(k)); }
-            out.push('(' + 'string.char(' + codes.join(',') + '))');
-          } else {
-            out.push('"' + s + '"');
-          }
-          i=j; mode='normal'; continue;
-        }
-        if(mode==='bracket'){
-          // long bracket literal -- copy until closing ]]
-          let j=i; while(j<n){ if(src[j]==']' && src[j+1]==']'){ out.push(src.slice(i,j)); out.push(']]'); j+=2; break; } j++; }
-          i=j; mode='normal'; continue;
-        }
-      }
+// Simple reversible obfuscator
+function obfuscate(code){
+  const map = {};
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+  for(let c of code){
+    if(!map[c]) map[c] = chars[Math.floor(Math.random()*chars.length)];
+    result += map[c];
+  }
+  return '--MAP:' + btoa(JSON.stringify(map)) + '\n' + result;
+}
 
-      let obf = out.join('');
+function deobfuscate(code){
+  const lines = code.split('\n');
+  if(!lines[0].startsWith('--MAP:')) return 'Missing MAP header';
+  let map = JSON.parse(atob(lines[0].slice(6)));
+  let reverse = {};
+  for(let k in map) reverse[map[k]] = k;
+  let out = '';
+  const body = lines.slice(1).join('\n');
+  for(let c of body) out += reverse[c] || c;
+  return out;
+}
 
-      // insert junk no-ops (harmless locals) between top-level lines if requested
-      if(options.junk){
-        const lines = obf.split('\n');
-        for(let k=0;k<lines.length;k++){
-          if(Math.random()<0.12 && lines[k].trim()!=='' ){
-            lines[k] = lines[k] + '\nlocal ' + randName(false) + ' = nil -- junk';
-          }
-        }
-        obf = lines.join('\n');
-      }
+// Buttons
 
-      // header mapping
-      let header='';
-      if(options.header){
-        const meta = { map: idMap, strings: !!options.strings, junk: !!options.junk };
-        const json = JSON.stringify(meta);
-        const b64 = btoa(unescape(encodeURIComponent(json)));
-        header = '--[[OBF_MAPPING:' + b64 + ']]\n';
-        obf = header + obf;
-      }
+document.getElementById('btnObf').onclick = () => {
+  runLoader(()=>{
+    const input = document.getElementById('inputObf').value;
+    document.getElementById('outputObf').value = obfuscate(input);
+  });
+};
 
-      return obf;
-    }
-
-    // deobfuscator: uses header mapping if present, otherwise tries to decode string.char(...) and simple reverse mapping heuristics
-    function deobfuscateLua(src){
-      // try header
-      const headerMatch = src.match(/^\-\-\[\[OBF_MAPPING:([A-Za-z0-9+/=]+)\]\]/);
-      let content = src;
-      let map = null;
-      if(headerMatch){
-        try{
-          const json = decodeURIComponent(escape(atob(headerMatch[1])));
-          const meta = JSON.parse(json);
-          map = meta.map;
-          content = src.replace(/^\-\-\[\[OBF_MAPPING:[A-Za-z0-9+/=]+\]\]\n?/, '');
-        }catch(e){ console.warn('bad header',e); }
-      }
-
-      // if map exists, invert mapping and replace identifiers (careful with strings/comments) using scanner
-      if(map){
-        // invert
-        const inv = {};
-        for(const k in map) inv[map[k]] = k;
-        // scanner to replace only outside strings/comments
-        let i=0,n=content.length,mode='normal',out=[];
-        while(i<n){
-          const ch = content[i];
-          if(mode==='normal'){
-            if(ch==='\'') { out.push(ch); mode='sq'; i++; continue; }
-            if(ch==='\"') { out.push(ch); mode='dq'; i++; continue; }
-            if(ch==='-' && content[i+1]=='-'){
-              if(content[i+2]=='[' && content[i+3]=='['){ out.push('--[['); mode='mlcomment'; i+=4; continue; }
-              out.push('--'); mode='slcomment'; i+=2; continue;
-            }
-            if(ch==='[' && content[i+1]=='['){ out.push('[['); mode='bracket'; i+=2; continue; }
-            if(/[A-Za-z_]/.test(ch)){
-              let j=i+1; while(j<n && /[A-Za-z0-9_]/.test(content[j])) j++;
-              const tok = content.slice(i,j);
-              if(inv.hasOwnProperty(tok)) out.push(inv[tok]); else out.push(tok);
-              i=j; continue;
-            }
-            out.push(ch); i++; continue;
-          }
-          if(mode==='slcomment'){
-            if(ch==='\n'){ out.push(ch); mode='normal'; } else out.push(ch); i++; continue;
-          }
-          if(mode==='mlcomment'){
-            if(ch===']' && content[i+1]==']'){ out.push(']]'); mode='normal'; i+=2; continue; } out.push(ch); i++; continue;
-          }
-          if(mode==='sq'){
-            // if we see (string.char(...)) pattern here, leave as-is; else copy
-            if(content.substr(i,1)=="\""){}
-            // find closing '\''
-            let j=i; while(j< n){ if(content[j]=='\\'){ j+=2; continue; } if(content[j]=='\'') { j++; break; } j++; }
-            out.push(content.slice(i,j)); i=j; mode='normal'; continue;
-          }
-          if(mode==='dq'){
-            let j=i; while(j< n){ if(content[j]=='\\'){ j+=2; continue; } if(content[j]=='\"') { j++; break; } j++; }
-            out.push(content.slice(i,j)); i=j; mode='normal'; continue;
-          }
-          if(mode==='bracket'){
-            let j=i; while(j<n){ if(content[j]==']' && content[j+1]==']'){ out.push(content.slice(i,j)); out.push(']]'); j+=2; break; } j++; }
-            i=j; mode='normal'; continue;
-          }
-        let res = out.join('');
-        // also try decode string.char(...) sequences into literal strings
-        res = res.replace(/\(\s*string\.char\s*\(([^)]*)\)\s*\)/g, (m,grp)=>{
-          try{
-            const nums = grp.split(',').map(s=>parseInt(s.trim())).filter(x=>!isNaN(x));
-            return '"' + nums.map(n=>String.fromCharCode(n)).join('') + '"';
-          }catch(e){ return m; }
-        });
-        return res;
-      }
-
-      // no header: best-effort
-      // decode string.char(...) patterns
-      let res = src.replace(/string\.char\s*\(([^)]*)\)/g,(m,grp)=>{
-        const nums = grp.split(',').map(s=>parseInt(s.trim())).filter(x=>!isNaN(x));
-        return '"' + nums.map(n=>String.fromCharCode(n)).join('') + '"';
-      });
-      return res;
-    }
-
-    // UI bindings
-    el('btnObf').onclick = ()=>{
-      const src = el('inputCode').value;
-      const opts = { strings: el('optStrings').checked, junk: el('optJunk').checked, short: el('optShort').checked, header: el('optHeader').checked };
-      try{
-        const obf = obfuscateLua(src, opts);
-        el('outputCode').value = obf;
-      }catch(e){ el('outputCode').value = '-- error: '+e.message; }
-    }
-    el('btnClear').onclick = ()=>{ el('outputCode').value=''; }
-    el('btnCopy').onclick = ()=>{ el('outputCode').select(); document.execCommand('copy'); }
-    el('btnDownload').onclick = ()=>{
-      const blob = new Blob([el('outputCode').value],{type:'text/plain'});
-      const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='obfuscated.lua'; a.click(); URL.revokeObjectURL(a.href);
-    }
-
-    el('btnDeobf').onclick = ()=>{
-      const s = el('deobfInput').value;
-      try{ el('deobfOutput').value = deobfuscateLua(s); }catch(e){ el('deobfOutput').value='-- error: '+e.message }
-    }
-    el('btnDeobfCopy').onclick = ()=>{ el('deobfOutput').select(); document.execCommand('copy'); }
-    el('btnDeobfClear').onclick = ()=>{ el('deobfInput').value=''; el('deobfOutput').value=''; }
-
-    // small UX: ctrl+enter to obfuscate/deobfuscate
-    el('inputCode').addEventListener('keydown',e=>{ if(e.ctrlKey && e.key==='Enter') el('btnObf').click(); });
-    el('deobfInput').addEventListener('keydown',e=>{ if(e.ctrlKey && e.key==='Enter') el('btnDeobf').click(); });
-
-  </script>
+document.getElementById('btnDeobf').onclick = () => {
+  runLoader(()=>{
+    const input = document.getElementById('inputDeobf').value;
+    document.getElementById('outputDeobf').value = deobfuscate(input);
+  });
+};
+</script>
 </body>
 </html>
