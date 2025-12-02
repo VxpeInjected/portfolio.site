@@ -1,661 +1,388 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wonder Obfuscator</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        /* ... (CSS remains the same, no changes needed) ... */
-        body {
-            font-family: 'Source Code Pro', monospace;
-            margin: 0;
-            background-color: #000;
-            color: #eee;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        .container {
-            background-color: #111;
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.8);
-            width: 85%;
-            max-width: 900px;
-            display: none; /* Initially hidden */
-            flex-direction: column;
-        }
-
-        h1 {
-            color: #e74c3c;
-            text-align: center;
-            margin-bottom: 30px;
-            font-size: 2.5em;
-            font-weight: 600;
-        }
-
-        .code-area-container {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .code-area {
-            display: flex;
-            flex-direction: column;
-        }
-
-        textarea, #output {
-            width: 100%;
-            height: 250px;
-            padding: 15px;
-            border: 1px solid #555;
-            border-radius: 8px;
-            box-sizing: border-box;
-            resize: none;
-            font-family: inherit;
-            background-color: #222;
-            color: #eee;
-            overflow: auto;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        textarea:focus, #output:focus {
-            border-color: #e74c3c;
-            box-shadow: 0 0 0 0.2rem rgba(231, 76, 60, 0.25);
-            outline: none;
-        }
-
-        .controls {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .button-group {
-            display: flex;
-            gap: 10px;
-        }
-
-        button, .dropdown { /* Style for dropdown to match buttons */
-            padding: 10px 20px;
-            background-color: #c0392b;
-            color: white;
-            border: none;
-            cursor: pointer;
-            border-radius: 6px;
-            font-size: 1em;
-            transition: background-color 0.3s ease, transform 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        button:hover, .dropdown:hover {
-            background-color: #d64537;
-            transform: translateY(-1px);
-        }
-
-        #clearButton {
-            background-color: #333;
-        }
-
-        #clearButton:hover{
-          background-color: #444;
-        }
-
-        #loadingIndicator {
-            display: none;
-            margin-left: 15px;
-            color: #fff;
-            animation: spin 0.8s linear infinite;
-        }
-
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
-        .code-area h2 {
-            color: #e86353;
-            margin-bottom: 8px;
-            font-size: 1.3em;
-            font-weight: 500;
-        }
-
-      .dropdown {
-            position: relative;
-            display: inline-block;
-        }
-
-        .dropdown-content {
-            display: none;
-            position: absolute;
-            background-color: #222;
-            min-width: 160px;
-            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-            z-index: 3;
-            border-radius: 6px;
-            overflow: hidden;
-        }
-
-        .dropdown-content a {
-            color: #eee;
-            padding: 10px 14px;
-            text-decoration: none;
-            display: block;
-            transition: background-color 0.2s ease;
-        }
-
-        .dropdown-content a:hover {
-            background-color: #444;
-        }
-
-        .dropdown:hover .dropdown-content {
-            display: block;
-        }
-
-        #output.fade-out {
-            opacity: 0;
-            transition: opacity 0.3s ease-in-out;
-        }
-        #output {
-            opacity: 1;
-            transition: opacity 0.3s ease-in-out;
-        }
-
-        /* Intro Styles */
-        #intro {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: #000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 10;
-            animation: fadeOut 1s ease 3s forwards;
-        }
-
-        #intro-title {
-            font-size: 4em;
-            font-weight: 700;
-            color: #e74c3c;
-            text-shadow: 0 0 10px #e74c3c;
-            animation: flicker 0.5s infinite alternate, zoomIn 1.5s ease forwards;
-        }
-
-        @keyframes fadeOut {
-            to { opacity: 0; visibility: hidden; }
-        }
-
-        @keyframes flicker {
-            from { opacity: 0.8; }
-            to { opacity: 1; }
-        }
-
-        @keyframes zoomIn {
-            from { transform: scale(0); }
-            to { transform: scale(1); }
-        }
-
-        /* Mini Menu Styles */
-        #mini-menu {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            background-color: rgba(34, 34, 34, 0.9);
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
-            z-index: 5;
-            display: none; /* Initially hidden */
-            color: #eee;
-            animation: popUp 0.5s ease forwards, fadeOutSlow 1s ease 5s forwards;
-        }
-
-        #mini-menu p {
-            margin: 0 0 10px 0;
-            font-size: 0.9em;
-        }
-
-        #mini-menu p:last-child {
-            margin-bottom: 0;
-            font-size: 0.7em;
-            color: #aaa;
-        }
-
-        #mini-menu-title {
-            font-weight: bold;
-            margin-bottom: 5px;
-            color: #e74c3c;
-        }
-
-        /* Animations for mini-menu */
-        @keyframes popUp {
-            from { transform: scale(0); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-        }
-
-        @keyframes fadeOutSlow {
-            to { opacity: 0; visibility: hidden; }
-        }
-    </style>
-</head>
-<body>
-    <div id="intro">
-        <div id="intro-title">Wonder Compiler</div>
-    </div>
-
-    <div id="mini-menu">
-        <div id="mini-menu-title">Note!</div>
-        <p>Made By baconthewondering837 Roblox Follow me for more</p>
-        <p>pss.. I've been working On this for Ages</p>
-    </div>
-
-    <div class="container">
-        <h1><i class="fas fa-magic"></i> Wonder Obfuscator</h1>
-
-        <div class="code-area-container">
-            <div class="code-area">
-                <h2><i class="fas fa-file-code"></i> Input</h2>
-                <textarea id="inputCode" placeholder="Paste your Lua code here..."></textarea>
-            </div>
-            <div class="code-area">
-                <h2><i class="fas fa-lock"></i> Output</h2>
-                <div id="output"></div>
-            </div>
-        </div>
-
-        <div class="controls">
-            <div class="button-group">
-                <button onclick="obfuscateCode()" id="obfuscateButton"><i class="fas fa-shield-alt"></i> Obfuscate</button>
-                <button onclick="clearFields()" id="clearButton"><i class="fas fa-trash-alt"></i> Clear</button>
-              <button onclick="togglePreserveFunctionality()" id="preserveFunctionalityButton">
-                    <i class="fas fa-check-circle"></i> Preserve Functionality: <span id="preserveStatus">OFF</span>
-                </button>
-            </div>
-
-            <div class="dropdown">
-                <button id="protectionLevelButton"><i class="fas fa-user-secret"></i> Protection Level</button>
-                <div class="dropdown-content">
-                    <a href="#" onclick="setProtectionLevel('none')">None</a>
-                    <a href="#" onclick="setProtectionLevel('low')">Low Protection</a>
-                    <a href="#" onclick="setProtectionLevel('normal')">Normal Protection</a>
-                    <a href="#" onclick="setProtectionLevel('advanced')">Advanced Protection</a>
-                    <a href="#" onclick="setProtectionLevel('extreme')">EXTREME Protection</a>
-                 </div>
-            </div>
-
-            <div class="dropdown">
-                <button id="antiReverseEngineeringButton"><i class="fas fa-wrench"></i> Anti-Reverse Engineering</button>
-                <div class="dropdown-content">
-                    <a href="#" onclick="setAntiReverseEngineering('none')">None</a>
-                    <a href="#" onclick="setAntiReverseEngineering('basic')">Basic</a>
-                    <a href="#" onclick="setAntiReverseEngineering('complex')">Complex</a>
-                    <a href="#" onclick="setAntiReverseEngineering('extreme')">Extremely Complex</a>
-                </div>
-            </div>
-
-            <span id="loadingIndicator"><i class="fas fa-spinner"></i></span>
-        </div>
-    </div>
-
-    <script>
-        let protectionLevel = 'none'; // Default: None
-        let antiReverseEngineering = 'none'; // Default: None
-        let preserveFunctionality = false; // Default: OFF
-
-        document.addEventListener("DOMContentLoaded", function() {
-            setTimeout(function() {
-                document.querySelector('.container').style.display = 'flex';
-                document.getElementById('mini-menu').style.display = 'block';
-            }, 4000);
-
-            updateButtonText();
-        });
-
-        function updateButtonText() {
-            document.getElementById('protectionLevelButton').innerHTML = `<i class="fas fa-user-secret"></i> ${protectionLevel.charAt(0).toUpperCase() + protectionLevel.slice(1)} Protection`;
-            document.getElementById('antiReverseEngineeringButton').innerHTML = `<i class="fas fa-wrench"></i> ${antiReverseEngineering.charAt(0).toUpperCase() + antiReverseEngineering.slice(1)}`;
-        }
-
-        function setProtectionLevel(level) {
-            protectionLevel = level;
-            updateButtonText();
-        }
-
-        function setAntiReverseEngineering(level) {
-            antiReverseEngineering = level;
-            updateButtonText();
-        }
-
-      function togglePreserveFunctionality() {
-        preserveFunctionality = !preserveFunctionality;
-        document.getElementById('preserveStatus').textContent = preserveFunctionality ? 'ON' : 'OFF';
-        // Change the button's appearance based on the state
-        const button = document.getElementById('preserveFunctionalityButton');
-        if (preserveFunctionality) {
-            button.style.backgroundColor = '#2ecc71'; // Green when ON
-            button.innerHTML = '<i class="fas fa-check-circle"></i> Preserve Functionality: <span id="preserveStatus">ON</span>';
-        } else {
-            button.style.backgroundColor = '#c0392b'; // Red when OFF
-          button.innerHTML = '<i class="fas fa-times-circle"></i> Preserve Functionality: <span id="preserveStatus">OFF</span>';
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wonder Obfuscator</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+    body {
+        font-family: 'Source Code Pro', monospace;
+        margin: 0;
+        background: #000;
+        color: #eee;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        overflow-x: hidden;
     }
 
-        function obfuscateCode() {
-            const loadingIndicator = document.getElementById('loadingIndicator');
-            const outputDiv = document.getElementById('output');
+    .container {
+        display: none;
+        flex-direction: column;
+        width: 85%;
+        max-width: 900px;
+        padding: 40px;
+        border-radius: 12px;
+        background: #111;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.8);
+    }
 
-            outputDiv.classList.add('fade-out');
-            loadingIndicator.style.display = 'inline-block';
+    h1 {
+        text-align: center;
+        color: #e74c3c;
+        font-size: 2.5em;
+        margin-bottom: 30px;
+    }
 
-            setTimeout(() => {
-                outputDiv.textContent = "";
-                let inputCode = document.getElementById('inputCode').value;
+    .code-area-container {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
 
-                let obfuscatedCode = applyObfuscation(inputCode, protectionLevel, antiReverseEngineering);
-                obfuscatedCode = addObfuscationMessage(obfuscatedCode);
+    .code-area h2 {
+        color: #e86353;
+        margin-bottom: 8px;
+        font-weight: 500;
+    }
 
-                outputDiv.textContent = obfuscatedCode;
-                outputDiv.classList.remove('fade-out');
-                loadingIndicator.style.display = 'none';
+    textarea, #output {
+        width: 100%;
+        height: 250px;
+        padding: 15px;
+        border-radius: 8px;
+        border: 1px solid #555;
+        background: #222;
+        color: #eee;
+        font-family: inherit;
+        resize: none;
+        overflow: auto;
+        transition: border-color 0.3s, box-shadow 0.3s;
+    }
 
-            }, 300);
+    textarea:focus, #output:focus {
+        border-color: #e74c3c;
+        box-shadow: 0 0 0 0.2rem rgba(231,76,60,0.25);
+        outline: none;
+    }
+
+    .controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 20px;
+    }
+
+    .button-group, .dropdown {
+        display: flex;
+        gap: 10px;
+    }
+
+    button, .dropdown button {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        font-size: 1em;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+        background-color: #c0392b;
+        color: #fff;
+        transition: 0.3s;
+    }
+
+    button:hover, .dropdown:hover button {
+        background-color: #d64537;
+        transform: translateY(-1px);
+    }
+
+    #clearButton { background: #333; }
+    #clearButton:hover { background: #444; }
+
+    #loadingIndicator { display: none; margin-left: 15px; animation: spin 0.8s linear infinite; }
+
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    .dropdown { position: relative; }
+    .dropdown-content {
+        display: none;
+        position: absolute;
+        background: #222;
+        min-width: 160px;
+        border-radius: 6px;
+        box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+        overflow: hidden;
+        z-index: 3;
+    }
+
+    .dropdown-content a {
+        color: #eee;
+        padding: 10px 14px;
+        text-decoration: none;
+        display: block;
+    }
+
+    .dropdown-content a:hover { background: #444; }
+    .dropdown:hover .dropdown-content { display: block; }
+
+    #output { opacity: 1; transition: opacity 0.3s; }
+    #output.fade-out { opacity: 0; }
+
+    #intro, #mini-menu {
+        position: fixed;
+        z-index: 10;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    #intro {
+        top:0; left:0; width:100%; height:100%;
+        background:#000;
+        animation: fadeOut 1s ease 3s forwards;
+    }
+
+    #intro-title {
+        font-size: 4em;
+        font-weight: 700;
+        color:#e74c3c;
+        text-shadow:0 0 10px #e74c3c;
+        animation: flicker 0.5s infinite alternate, zoomIn 1.5s ease forwards;
+    }
+
+    @keyframes fadeOut { to { opacity: 0; visibility: hidden; } }
+    @keyframes flicker { from { opacity:0.8 } to { opacity:1 } }
+    @keyframes zoomIn { from { transform:scale(0) } to { transform:scale(1) } }
+
+    #mini-menu {
+        top: 20px; left: 20px;
+        background: rgba(34,34,34,0.9);
+        padding: 15px;
+        border-radius: 8px;
+        color: #eee;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+        display: none;
+        animation: popUp 0.5s forwards, fadeOutSlow 1s ease 5s forwards;
+    }
+
+    #mini-menu-title { font-weight: bold; margin-bottom: 5px; color: #e74c3c; }
+    #mini-menu p { margin:0 0 10px 0; font-size:0.9em; }
+    #mini-menu p:last-child { font-size:0.7em; color:#aaa; margin-bottom:0; }
+
+    @keyframes popUp { from { transform:scale(0); opacity:0 } to { transform:scale(1); opacity:1 } }
+    @keyframes fadeOutSlow { to { opacity:0; visibility:hidden } }
+</style>
+</head>
+<body>
+
+<div id="intro"><div id="intro-title">Wonder Compiler</div></div>
+
+<div id="mini-menu">
+    <div id="mini-menu-title">Note!</div>
+    <p>Made By baconthewondering837 Roblox Follow me for more</p>
+    <p>pss.. I've been working On this for Ages</p>
+</div>
+
+<div class="container">
+    <h1><i class="fas fa-magic"></i> Wonder Obfuscator</h1>
+
+    <div class="code-area-container">
+        <div class="code-area">
+            <h2><i class="fas fa-file-code"></i> Input</h2>
+            <textarea id="inputCode" placeholder="Paste your Lua code here..."></textarea>
+        </div>
+        <div class="code-area">
+            <h2><i class="fas fa-lock"></i> Output</h2>
+            <div id="output"></div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <div class="button-group">
+            <button id="obfuscateButton" onclick="obfuscateCode()"><i class="fas fa-shield-alt"></i> Obfuscate</button>
+            <button id="clearButton" onclick="clearFields()"><i class="fas fa-trash-alt"></i> Clear</button>
+            <button id="preserveFunctionalityButton" onclick="togglePreserveFunctionality()">
+                <i class="fas fa-check-circle"></i> Preserve Functionality: <span id="preserveStatus">OFF</span>
+            </button>
+        </div>
+
+        <div class="dropdown">
+            <button id="protectionLevelButton"><i class="fas fa-user-secret"></i> Protection Level</button>
+            <div class="dropdown-content">
+                <a href="#" onclick="setProtectionLevel('none')">None</a>
+                <a href="#" onclick="setProtectionLevel('low')">Low</a>
+                <a href="#" onclick="setProtectionLevel('normal')">Normal</a>
+                <a href="#" onclick="setProtectionLevel('advanced')">Advanced</a>
+                <a href="#" onclick="setProtectionLevel('extreme')">Extreme</a>
+            </div>
+        </div>
+
+        <div class="dropdown">
+            <button id="antiReverseEngineeringButton"><i class="fas fa-wrench"></i> Anti-Reverse Engineering</button>
+            <div class="dropdown-content">
+                <a href="#" onclick="setAntiReverseEngineering('none')">None</a>
+                <a href="#" onclick="setAntiReverseEngineering('basic')">Basic</a>
+                <a href="#" onclick="setAntiReverseEngineering('complex')">Complex</a>
+                <a href="#" onclick="setAntiReverseEngineering('extreme')">Extreme</a>
+            </div>
+        </div>
+
+        <span id="loadingIndicator"><i class="fas fa-spinner"></i></span>
+    </div>
+</div>
+
+<script>
+let protectionLevel = 'none';
+let antiReverseEngineering = 'none';
+let preserveFunctionality = false;
+
+document.addEventListener("DOMContentLoaded", () => {
+    setTimeout(() => {
+        document.querySelector('.container').style.display = 'flex';
+        document.getElementById('mini-menu').style.display = 'block';
+    }, 4000);
+    updateButtonText();
+});
+
+function updateButtonText() {
+    document.getElementById('protectionLevelButton').innerHTML = `<i class="fas fa-user-secret"></i> ${capitalize(protectionLevel)} Protection`;
+    document.getElementById('antiReverseEngineeringButton').innerHTML = `<i class="fas fa-wrench"></i> ${capitalize(antiReverseEngineering)}`;
+}
+
+function capitalize(str) { return str.charAt(0).toUpperCase() + str.slice(1); }
+
+function setProtectionLevel(level) { protectionLevel = level; updateButtonText(); }
+function setAntiReverseEngineering(level) { antiReverseEngineering = level; updateButtonText(); }
+
+function togglePreserveFunctionality() {
+    preserveFunctionality = !preserveFunctionality;
+    const btn = document.getElementById('preserveFunctionalityButton');
+    document.getElementById('preserveStatus').textContent = preserveFunctionality ? 'ON' : 'OFF';
+    btn.style.backgroundColor = preserveFunctionality ? '#2ecc71' : '#c0392b';
+    btn.innerHTML = `<i class="fas ${preserveFunctionality ? 'fa-check-circle' : 'fa-times-circle'}"></i> Preserve Functionality: <span id="preserveStatus">${preserveFunctionality ? 'ON' : 'OFF'}</span>`;
+}
+
+function obfuscateCode() {
+    const loading = document.getElementById('loadingIndicator');
+    const output = document.getElementById('output');
+    output.classList.add('fade-out');
+    loading.style.display = 'inline-block';
+
+    setTimeout(() => {
+        let code = document.getElementById('inputCode').value;
+        code = applyObfuscation(code, protectionLevel, antiReverseEngineering);
+        output.textContent = addObfuscationMessage(code);
+        output.classList.remove('fade-out');
+        loading.style.display = 'none';
+    }, 300);
+}
+
+function clearFields() {
+    document.getElementById('inputCode').value = '';
+    document.getElementById('output').textContent = '';
+}
+
+// =====================
+// Obfuscation Logic
+// =====================
+function applyObfuscation(code, level, antiReverse) {
+    let obf = code;
+    if (level !== 'none' || antiReverse !== 'none') {
+        obf = obfuscateLocalVariables(obf);
+        obf = removeComments(obf);
+        obf = safeRemoveWhitespace(obf);
+        obf = convertNumbersToHex(obf);
+    }
+
+    const levels = {
+        low: [stringManipulation, basicControlFlowObfuscation],
+        normal: [stringManipulation, basicControlFlowObfuscation, (c)=>deadCodeInsertion(c,preserveFunctionality), aggressiveRenaming],
+        advanced: [stringManipulation, basicControlFlowObfuscation, (c)=>deadCodeInsertion(c,preserveFunctionality), aggressiveRenaming, booleanObfuscation, numberObfuscation],
+        extreme: [stringManipulation, advancedControlFlowObfuscation, (c)=>deadCodeInsertion(c,preserveFunctionality), aggressiveRenaming, booleanObfuscation, numberObfuscation, dataObfuscation, functionInlining]
+    };
+
+    if(levels[level]) levels[level].forEach(fn=>obf=fn(obf));
+
+    const anti = {
+        basic: [basicControlFlowObfuscation],
+        complex: [advancedControlFlowObfuscation, dataObfuscation, functionInlining],
+        extreme: [advancedControlFlowObfuscation, dataObfuscation, functionInlining, (c)=>junkCodeInsertion(c,preserveFunctionality), aggressiveRenaming, booleanObfuscation, numberObfuscation]
+    };
+
+    if(anti[antiReverse]){
+        anti[antiReverse].forEach(fn=>{
+            if(typeof fn==='function') obf=fn(obf);
+        });
+    }
+
+    return obf;
+}
+
+// --- Techniques ---
+function obfuscateLocalVariables(code) {
+    const regex = /local\s+([a-zA-Z_]\w*)/g;
+    const replacements = {};
+    let obf = code;
+    let m;
+    while(m=regex.exec(code)){
+        const name=m[1];
+        if(!replacements[name]){
+            const newName = `_0x${Math.random().toString(16).slice(2,8)}${Math.random().toString(16).slice(2,8)}`;
+            replacements[name]=newName;
+            obf=obf.replace(new RegExp(`\\b${name}\\b`,'g'), newName);
         }
+    }
+    return obf;
+}
 
-        function clearFields() {
-            document.getElementById('inputCode').value = '';
-            document.getElementById('output').textContent = '';
-        }
+function removeComments(code){ return code.replace(/--\[\[[\s\S]*?\]\]/g,'').replace(/--.*$/gm,''); }
 
-      function applyObfuscation(code, level, antiReverse) {
-          let obfuscatedCode = code;
+function safeRemoveWhitespace(code){
+    let inStr=false, newC="";
+    for(let i=0;i<code.length;i++){
+        const c=code[i];
+        if(c=='"'||c=="'"){
+            if(code[i-1]==='\\') newC+=c;
+            else { inStr=!inStr; newC+=c; }
+        } else if(!inStr && /\s/.test(c)) continue;
+        else newC+=c;
+    }
+    return newC;
+}
 
-          // --- Basic Obfuscation (Always Applied, *unless* both levels are 'none') ---
-          if (level !== 'none' || antiReverse !== 'none') {
-              obfuscatedCode = obfuscateLocalVariables(obfuscatedCode);
-              obfuscatedCode = removeComments(obfuscatedCode);
-              obfuscatedCode = safeRemoveWhitespace(obfuscatedCode);
-              obfuscatedCode = convertNumbersToHex(obfuscatedCode);
-          }
+function convertNumbersToHex(code){ return code.replace(/\b-?\d+(\.\d+)?\b/g, m=>parseFloat(m).toString(16).startsWith('-')?`-0x${parseFloat(m).toString(16).slice(1)}`:`0x${parseFloat(m).toString(16)}`); }
 
-          // --- Protection Levels ---
-          if (level === 'low') {
-              obfuscatedCode = stringManipulation(obfuscatedCode);
-              obfuscatedCode = basicControlFlowObfuscation(obfuscatedCode);
-          } else if (level === 'normal') {
-              obfuscatedCode = stringManipulation(obfuscatedCode);
-              obfuscatedCode = basicControlFlowObfuscation(obfuscatedCode);
-              obfuscatedCode = deadCodeInsertion(obfuscatedCode, preserveFunctionality); // Pass preserveFunctionality
-              obfuscatedCode = aggressiveRenaming(obfuscatedCode);
-          } else if (level === 'advanced') {
-              obfuscatedCode = stringManipulation(obfuscatedCode);
-              obfuscatedCode = basicControlFlowObfuscation(obfuscatedCode);
-              obfuscatedCode = deadCodeInsertion(obfuscatedCode, preserveFunctionality); // Pass preserveFunctionality
-              obfuscatedCode = aggressiveRenaming(obfuscatedCode);
-              obfuscatedCode = booleanObfuscation(obfuscatedCode);
-              obfuscatedCode = numberObfuscation(obfuscatedCode);
-          } else if (level === 'extreme') {
-              obfuscatedCode = stringManipulation(obfuscatedCode);
-              obfuscatedCode = advancedControlFlowObfuscation(obfuscatedCode);
-              obfuscatedCode = deadCodeInsertion(obfuscatedCode, preserveFunctionality); // Pass preserveFunctionality
-              obfuscatedCode = aggressiveRenaming(obfuscatedCode);
-              obfuscatedCode = booleanObfuscation(obfuscatedCode);
-              obfuscatedCode = numberObfuscation(obfuscatedCode);
-              obfuscatedCode = dataObfuscation(obfuscatedCode);
-              obfuscatedCode = functionInlining(obfuscatedCode);
-          }
+function stringManipulation(code){ return code.replace(/"([^"\\]*(?:\\.[^"\\]*)*)"/g,(m,s)=>`string.char(${[...s].map(c=>c.charCodeAt(0)).join(',')})`); }
 
-          // --- Anti-Reverse Engineering ---
-          if (antiReverse === 'basic') {
-              obfuscatedCode = basicControlFlowObfuscation(obfuscatedCode);
-          }
-          else if (antiReverse === 'complex') {
-              obfuscatedCode = advancedControlFlowObfuscation(obfuscatedCode);
-              obfuscatedCode = dataObfuscation(obfuscatedCode);
-              obfuscatedCode = functionInlining(obfuscatedCode);
-          } else if (antiReverse === 'extreme') {
-              obfuscatedCode = advancedControlFlowObfuscation(obfuscatedCode);
-              obfuscatedCode = dataObfuscation(obfuscatedCode);
-              obfuscatedCode = functionInlining(obfuscatedCode);
-              obfuscatedCode = junkCodeInsertion(obfuscatedCode, preserveFunctionality); // Pass preserveFunctionality
-              for (let i = 0; i < 2; i++) {
-                  obfuscatedCode = aggressiveRenaming(obfuscatedCode);
-                  obfuscatedCode = booleanObfuscation(obfuscatedCode);
-                  obfuscatedCode = numberObfuscation(obfuscatedCode);
-              }
-          }
+function basicControlFlowObfuscation(code){ return code.replace(/;/g,";if true then end;"); }
+function advancedControlFlowObfuscation(code){ const a=generateObfuscatedName(),b=generateObfuscatedName(); return `;local ${a}=0;local ${b}=1;if ${a}<${b} then while ${a}<${b} do ${a}=${a}+1;${b}=${b}+1; end end;`; }
 
-          return obfuscatedCode;
-      }
+function deadCodeInsertion(code,preserve){ if(preserve) return code; const f=generateObfuscatedName(); return `local function ${f}() local ${generateObfuscatedName()}=10; end;`+code; }
 
-        // --- Obfuscation Techniques ---
+function aggressiveRenaming(code){ return code.replace(/\b([a-zA-Z_]\w*)\b/g,(name)=>isLuaKeyword(name)||isLuaStdLib(name)?name:generateObfuscatedName()); }
+function isLuaKeyword(n){ return ["and","break","do","else","elseif","end","false","for","function","if","in","local","nil","not","or","repeat","return","then","true","until","while"].includes(n); }
+function isLuaStdLib(n){ return ["string","table","math","io","os","debug","coroutine","package"].some(k=>n===k||n.startsWith(k+".")); }
 
-        function obfuscateLocalVariables(code) {
-            const localVariableRegex = /local\s+([a-zA-Z_]\w*)/g;
-            let match;
-            const replacements = {};
-            let obfuscatedCode = code;
-            while ((match = localVariableRegex.exec(code)) !== null) {
-                const originalName = match[1];
-                if (!replacements[originalName]) {
-                    const newName = generateObfuscatedName();
-                    replacements[originalName] = newName;
-                    const variableRegex = new RegExp(`\\b${originalName}\\b`, 'g');
-                    obfuscatedCode = obfuscatedCode.replace(variableRegex, newName);
-                }
-            }
-            return obfuscatedCode;
-        }
+function booleanObfuscation(code){ return code.replace(/\btrue\b/g,"(1==1)").replace(/\bfalse\b/g,"(1==0)"); }
+function numberObfuscation(code){ return code.replace(/\b-?\d+(\.\d+)?\b/g,m=>["("+m+"+0)","("+m+"*1)","("+m+"-0)","("+m+"/1)","("+m+"^1)"][Math.floor(Math.random()*5)]); }
 
-        function generateObfuscatedName() {
-            return `_0x${Math.random().toString(16).substring(2)}${Math.random().toString(16).substring(2)}${Math.random().toString(16).substring(2)}`;
-        }
+function dataObfuscation(code){ const offset=Math.floor(Math.random()*100)+1; return code.replace(/\b-?\d+(\.\d+)?\b/g,m=>`(${m}+${offset}-${offset})`); }
 
-        function removeComments(code) {
-            return code.replace(/--\[\[[\s\S]*?\]\]/g, '').replace(/--.*$/gm, '');
-        }
+function functionInlining(code){ return code.replace(/local function ([a-zA-Z_]\w*)\(([^)]*)\)\s*([\s\S]*?)end/g,(m,n,p,b)=>code.replace(new RegExp(`\\b${n}\\s*\\(([^)]*)\\)`,'g'),(call,args)=>b)); }
 
+function junkCodeInsertion(code,preserve){ if(preserve) return code; const stmts=[`local ${generateObfuscatedName()}=1+1-1;`,`if true then else end;`,`local ${generateObfuscatedName()}=string.char(72,101,108,108,111);`,`local ${generateObfuscatedName()}={${generateObfuscatedName()}=1};`]; return code.replace(/;/g,_=>`; ${stmts[Math.floor(Math.random()*stmts.length)]} ;`); }
 
-        function safeRemoveWhitespace(code) {
-            let inString = false;
-            let newCode = "";
-            for (let i = 0; i < code.length; i++) {
-                const char = code[i];
+function addObfuscationMessage(code){ return "--[[ Obfuscated & Protected By Wondering Protection V1 ]]--\n"+code; }
 
-                if (char === '"' || char === "'") {
-                    if (i > 0 && code[i - 1] === '\\') {
-                        newCode += char;
-                    } else {
-                        inString = !inString;
-                        newCode += char;
-                    }
-                } else if (!inString && (char === ' ' || char === '\t' || char === '\n' || char === '\r')) {
-                    continue;
-                }
-                 else {
-                    newCode += char;
-                }
-            }
-            return newCode;
-        }
-
-
-        function convertNumbersToHex(code) {
-            const numberRegex = /\b-?\d+(\.\d+)?\b/g;
-            return code.replace(numberRegex, (match) => {
-                const num = parseFloat(match);
-                if (isNaN(num)) { return match; }
-                return num.toString(16).startsWith('-') ? `-0x${num.toString(16).substring(1)}` : `0x${num.toString(16)}`;
-            });
-        }
-
-        function stringManipulation(code) {
-            return code.replace(/"([^"\\]*(?:\\.[^"\\]*)*)"/g, (match, str) => {
-                let charCodes = [];
-                for (let i = 0; i < str.length; i++) {
-                    charCodes.push(str.charCodeAt(i));
-                }
-                return `string.char(${charCodes.join(',')})`;
-            });
-        }
-
-        function basicControlFlowObfuscation(code) {
-            return code.replace(/;/g, match => {
-                return `;if true then end;`;
-            });
-        }
-
-        function advancedControlFlowObfuscation(code) {
-            return code.replace(/;/g, match => {
-                const randomVar1 = generateObfuscatedName();
-                const randomVar2 = generateObfuscatedName();
-                return `;local ${randomVar1}=0;local ${randomVar2}=1;if ${randomVar1}<${randomVar2} then while ${randomVar1}<${randomVar2} do ${randomVar1}=${randomVar1}+1;${randomVar2}=${randomVar2}+1; end end;`;
-            });
-        }
-
-      function deadCodeInsertion(code, preserveFunctionality) {
-          if (preserveFunctionality) {
-              return code; // Don't insert dead code if functionality preservation is ON
-          }
-          const deadFunctionName = generateObfuscatedName();
-          const deadFunctionCode = `local function ${deadFunctionName}() local ${generateObfuscatedName()} = 10; end;`;
-          return deadFunctionCode + code;
-      }
-
-      function aggressiveRenaming(code) {
-            const identifierRegex = /\b([a-zA-Z_]\w*)\b/g;
-            let match;
-            const replacements = {};
-            let obfuscatedCode = code;
-
-            while ((match = identifierRegex.exec(code)) !== null) {
-                const originalName = match[1];
-                if (!isLuaKeyword(originalName) && !isLuaStandardLibraryFunction(originalName)) {
-                    if (!replacements[originalName]) {
-                        const newName = generateObfuscatedName();
-                        replacements[originalName] = newName;
-                        const variableRegex = new RegExp(`\\b${originalName}\\b`, 'g');
-                        obfuscatedCode = obfuscatedCode.replace(variableRegex, newName);
-                    }
-                }
-            }
-            return obfuscatedCode;
-        }
-
-        function isLuaKeyword(name) {
-            const keywords = ["and", "break", "do", "else", "elseif", "end", "false", "for", "function", "if", "in", "local", "nil", "not", "or", "repeat", "return", "then", "true", "until", "while"];
-            return keywords.includes(name);
-        }
-
-        function isLuaStandardLibraryFunction(name) {
-            const standardLibs = ["string", "table", "math", "io", "os", "debug", "coroutine", "package"];
-            return standardLibs.includes(name) || name.startsWith("string.") || name.startsWith("table.") || name.startsWith("math.") || name.startsWith("io.") || name.startsWith("os.") || name.startsWith("debug.") || name.startsWith("coroutine.") || name.startsWith("package.");
-        }
-
-        function booleanObfuscation(code) {
-            let obfuscatedCode = code.replace(/\btrue\b/g, "(1==1)");
-            obfuscatedCode = obfuscatedCode.replace(/\bfalse\b/g, "(1==0)");
-            return obfuscatedCode;
-        }
-
-        function numberObfuscation(code) {
-            const numberRegex = /\b-?\d+(\.\d+)?\b/g;
-            return code.replace(numberRegex, (match) => {
-                const num = parseFloat(match);
-                if (isNaN(num)) { return match; }
-
-                const obfuscations = [
-                    `(${num} + 0)`,
-                    `(${num} * 1)`,
-                    `(${num} - 0)`,
-                    `(${num} / 1)`,
-                    `(${num} ^ 1)`
-                ];
-                const randomIndex = Math.floor(Math.random() * obfuscations.length);
-                return obfuscations[randomIndex];
-            });
-        }
-
-        function dataObfuscation(code) {
-            const numberRegex = /\b-?\d+(\.\d+)?\b/g;
-            let obfuscatedCode = code;
-            const offset = Math.floor(Math.random() * 100) + 1;
-
-            obfuscatedCode = obfuscatedCode.replace(numberRegex, (match) => {
-                const num = parseFloat(match);
-                if (isNaN(num)) { return match; }
-                return `(${num} + ${offset} - ${offset})`;
-            });
-
-            return obfuscatedCode;
-        }
-
-        function functionInlining(code) {
-            const functionDeclarationRegex = /local\s+function\s+([a-zA-Z_]\w*)\s*\(([^)]*)\)\s*([\s\S]*?)end/g;
-            let match;
-            let obfuscatedCode = code;
-            while ((match = functionDeclarationRegex.exec(code)) !== null) {
-                const functionName = match[1];
-                const parameters = match[2].trim();
-                const functionBody = match[3].trim();
-                const functionCallRegex = new RegExp(`\\b${functionName}\\s*\\(([^)]*)\\)`, 'g');
-                obfuscatedCode = obfuscatedCode.replace(functionCallRegex, (callMatch, args) => {
-                    let replacedBody = functionBody;
-                    if (parameters !== "") {
-                        const paramList = parameters.split(',').map(p => p.trim());
-                        const argList = args.split(',').map(a => a.trim());
-                        for (let i = 0; i < paramList.length; i++) {
-                            const paramRegex = new RegExp(`\\b${paramList[i]}\\b`, 'g');
-                            if (i < argList.length) {
-                                replacedBody = replacedBody.replace(paramRegex, argList[i]);
-                            }
-                        }
-                    }
-                    return `(${replacedBody})`;
-                });
-                obfuscatedCode = obfuscatedCode.replace(match[0], '');
-            }
-            return obfuscatedCode;
-        }
-
-      function junkCodeInsertion(code, preserveFunctionality) {
-          if (preserveFunctionality) {
-              return code; // Don't insert junk code if functionality preservation is ON
-          }
-          const junkStatements = [
-              `local ${generateObfuscatedName()} = 1 + 1 - 1;`,
-              `if true then else end;`,
-              `local ${generateObfuscatedName()} = string.char(72, 101, 108, 108, 111);`, // "Hello"
-              `local ${generateObfuscatedName()} = {${generateObfuscatedName()}=1};`,
-          ];
-          let obfuscatedCode = code;
-          obfuscatedCode = obfuscatedCode.replace(/;/g, (match) => {
-              const randomIndex = Math.floor(Math.random() * junkStatements.length);
-              return `; ${junkStatements[randomIndex]} ;`;
-          });
-
-          return obfuscatedCode;
-      }
-
-        function addObfuscationMessage(code) {
-            const message = "--[[ Obfuscated & Protected By Wondering Protection V1 ]]--";
-            return message + "\n" + code;
-        }
-    </script>
+function generateObfuscatedName(){ return `_0x${Math.random().toString(16).slice(2,8)}${Math.random().toString(16).slice(2,8)}`; }
+</script>
 </body>
 </html>
